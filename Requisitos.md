@@ -51,6 +51,7 @@ Estes pontos não foram totalmente especificados — escolhi um padrão sensato 
 **Professor** (estende/relaciona-se com User)
 - `id`
 - `name`
+- `matrícula`
 - `email` (único)
 - `lattesNumber` (único — identificador do currículo Lattes)
 - `status` (`PENDING` | `APPROVED`)
