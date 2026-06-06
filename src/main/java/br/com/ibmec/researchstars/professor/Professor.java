@@ -1,5 +1,4 @@
 package br.com.ibmec.researchstars.professor;
-
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -27,7 +26,6 @@ public class Professor {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @NotNull
     @Column(name = "user_id", nullable = false, unique = true)
     private Long userId;
