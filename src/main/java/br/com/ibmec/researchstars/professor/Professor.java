@@ -1,4 +1,4 @@
-package br.com.ibmec.researchstars.professor.dto;
+package br.com.ibmec.researchstars.professor;
 
 import br.com.ibmec.researchstars.course.dto.Course;
 import br.com.ibmec.researchstars.user.dto.User;
