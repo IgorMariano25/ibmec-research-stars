@@ -1,16 +1,7 @@
 package br.com.ibmec.researchstars.course.dto;
 
-import jakarta.persistence.*;
-import lombok.Data;
-
-@Entity
-@Data
-@Table(name = "COURSE")
-public class Course {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(nullable = false)
-    private String name;
+// Stub mantido apenas para compatibilidade de imports legados.
+// A entidade real é br.com.ibmec.researchstars.course.Course
+public final class Course {
+    private Course() {}
 }

@@ -8,7 +8,7 @@ import org.hibernate.validator.constraints.URL;
 import java.time.LocalDate;
 
 // RF-10, RF-11, RF-18
-public record PublicationCreateRequest(
+public record CreatePublicationRequest(
 
         @NotBlank(message = "O título é obrigatório")
         String title,

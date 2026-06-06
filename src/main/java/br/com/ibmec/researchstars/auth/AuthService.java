@@ -1,23 +1,24 @@
 package br.com.ibmec.researchstars.auth;
+
 import br.com.ibmec.researchstars.auth.dto.AuthResponse;
 import br.com.ibmec.researchstars.auth.dto.LoginRequest;
 import br.com.ibmec.researchstars.auth.dto.RegisterRequest;
-import br.com.ibmec.researchstars.course.dto.Course;
+import br.com.ibmec.researchstars.course.Course;
+import br.com.ibmec.researchstars.course.CourseRepository;
 import br.com.ibmec.researchstars.professor.JwtService;
 import br.com.ibmec.researchstars.professor.Professor;
 import br.com.ibmec.researchstars.professor.ProfessorRepository;
+import br.com.ibmec.researchstars.user.User;
 import br.com.ibmec.researchstars.user.UserRepository;
-import br.com.ibmec.researchstars.user.dto.User;
-import br.com.ibmec.researchstars.course.CourseRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import lombok.RequiredArgsConstructor;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class AuthService {
 
     private final UserRepository userRepository;
@@ -25,6 +26,18 @@ public class AuthService {
     private final CourseRepository courseRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+
+    public AuthService(UserRepository userRepository,
+                       ProfessorRepository professorRepository,
+                       CourseRepository courseRepository,
+                       PasswordEncoder passwordEncoder,
+                       JwtService jwtService) {
+        this.userRepository = userRepository;
+        this.professorRepository = professorRepository;
+        this.courseRepository = courseRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
+    }
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -45,14 +58,16 @@ public class AuthService {
         if (courses.size() != request.cursos().size()) {
             throw new RuntimeException("Um ou mais cursos não encontrados");
         }
+        Set<Long> courseIds = courses.stream().map(Course::getId).collect(Collectors.toSet());
 
         Professor professor = new Professor();
         professor.setName(request.name());
         professor.setEmail(request.email());
         professor.setLattesNumber(request.lattesNumber());
+        professor.setMatricula(request.matricula());
+        professor.setUserId(user.getId());
         professor.setStatus(Professor.Status.PENDING);
-        professor.setCourses(courses);
-        professor.setUser(user);
+        professor.setCourseIds(courseIds);
         professorRepository.save(professor);
 
         String token = jwtService.generateToken(user.getEmail());
@@ -68,14 +83,15 @@ public class AuthService {
             throw new RuntimeException("Credenciais inválidas");
         }
 
-        Professor professor = professorRepository.findByUser(user)
-                .orElseThrow(() -> new RuntimeException("Perfil não encontrado"));
+        String token = jwtService.generateToken(user.getEmail());
 
-        if (professor.getStatus() == Professor.Status.PENDING) {
-            throw new RuntimeException("Cadastro aguardando aprovação");
+        if (user.getRole() == User.Role.ADMIN) {
+            return new AuthResponse(token, user.getEmail(), "Admin", "ADMIN", null);
         }
 
-        String token = jwtService.generateToken(user.getEmail());
+        Professor professor = professorRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new RuntimeException("Perfil não encontrado"));
+
         return new AuthResponse(token, user.getEmail(), professor.getName(),
                 user.getRole().name(), professor.getStatus().name());
     }

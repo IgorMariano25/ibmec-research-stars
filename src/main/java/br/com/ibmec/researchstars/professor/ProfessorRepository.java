@@ -8,7 +8,11 @@ public interface ProfessorRepository extends JpaRepository<Professor, Long>, Jpa
 
     Optional<Professor> findByUserId(Long userId);
 
+    boolean existsByEmail(String email);
+
     boolean existsByEmailAndIdNot(String email, Long id);
+
+    boolean existsByLattesNumber(String lattesNumber);
 
     boolean existsByLattesNumberAndIdNot(String lattesNumber, Long id);
 }

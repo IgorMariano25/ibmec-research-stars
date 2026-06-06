@@ -1,7 +1,5 @@
 package br.com.ibmec.researchstars.auth.dto;
 
-import br.com.ibmec.researchstars.course.dto.Course;
-
 import java.util.List;
 
 public record RegisterRequest(

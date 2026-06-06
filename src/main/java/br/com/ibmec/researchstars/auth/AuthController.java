@@ -3,17 +3,19 @@ package br.com.ibmec.researchstars.auth;
 import br.com.ibmec.researchstars.auth.dto.AuthResponse;
 import br.com.ibmec.researchstars.auth.dto.LoginRequest;
 import br.com.ibmec.researchstars.auth.dto.RegisterRequest;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
-import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/auth")
-@RequiredArgsConstructor
+@RequestMapping("/api/v1/auth")
 public class AuthController {
 
     private final AuthService authService;
+
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
