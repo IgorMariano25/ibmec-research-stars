@@ -1,57 +1,135 @@
 package br.com.ibmec.researchstars.professor;
-
-import br.com.ibmec.researchstars.course.dto.Course;
-import br.com.ibmec.researchstars.user.dto.User;
-import jakarta.persistence.*;
-import lombok.Data;
-import org.hibernate.annotations.CreationTimestamp;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
+import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
-@Data
-@Table(name = "PROFESSOR")
+@Table(name = "professors")
 public class Professor {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @NotNull
+    @Column(name = "user_id", nullable = false, unique = true)
+    private Long userId;
 
+    @NotBlank
+    @Size(max = 255)
     @Column(nullable = false)
     private String name;
 
-    @Column(unique = true, nullable = false)
+    @NotBlank
+    @Email
+    @Size(max = 255)
+    @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(unique = true, nullable = false)
+    @Size(max = 100)
+    @Column(unique = true)
     private String matricula;
 
-    @Column(unique = true, nullable = false)
+    @NotBlank
+    @Size(max = 100)
+    @Column(name = "lattes_number", nullable = false, unique = true)
     private String lattesNumber;
 
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status = Status.PENDING;
 
-    @ManyToMany
-    @JoinTable(
-        name = "professor_courses",
-        joinColumns = @JoinColumn(name = "professor_id"),
-        inverseJoinColumns = @JoinColumn(name = "course_id")
-    )
-    private List<Course> courses = new ArrayList<>();
+    @ElementCollection
+    @CollectionTable(name = "professor_courses", joinColumns = @JoinColumn(name = "professor_id"))
+    @Column(name = "course_id", nullable = false)
+    private Set<Long> courseIds = new HashSet<>();
 
     @CreationTimestamp
-    @Column(updatable = false)
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    @OneToOne
-    @JoinColumn(name = "user_id", unique = true, nullable = false)
-    private User user;
-
     public enum Status {
-        PENDING, APPROVED
+        PENDING,
+        APPROVED
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getMatricula() {
+        return matricula;
+    }
+
+    public void setMatricula(String matricula) {
+        this.matricula = matricula;
+    }
+
+    public String getLattesNumber() {
+        return lattesNumber;
+    }
+
+    public void setLattesNumber(String lattesNumber) {
+        this.lattesNumber = lattesNumber;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    public Set<Long> getCourseIds() {
+        return courseIds;
+    }
+
+    public void setCourseIds(Set<Long> courseIds) {
+        this.courseIds = courseIds;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
 }
