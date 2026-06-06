@@ -54,8 +54,8 @@ public class AuthService {
         user.setRole(User.Role.PROFESSOR);
         userRepository.save(user);
 
-        List<Course> courses = courseRepository.findAllById(request.cursos());
-        if (courses.size() != request.cursos().size()) {
+        List<Course> courses = courseRepository.findAllById(request.courseIds());
+        if (courses.size() != request.courseIds().size()) {
             throw new RuntimeException("Um ou mais cursos não encontrados");
         }
         Set<Long> courseIds = courses.stream().map(Course::getId).collect(Collectors.toSet());

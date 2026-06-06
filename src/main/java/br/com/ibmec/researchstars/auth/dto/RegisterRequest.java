@@ -8,5 +8,5 @@ public record RegisterRequest(
         String password,
         String lattesNumber,
         String matricula,
-        List<Long> cursos
+        List<Long> courseIds
 ) {}
