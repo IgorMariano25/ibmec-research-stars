@@ -3,14 +3,12 @@ package br.com.ibmec.researchstars.course;
 import br.com.ibmec.researchstars.course.dto.CourseDto;
 import br.com.ibmec.researchstars.course.dto.CreateCourseRequest;
 import jakarta.validation.Valid;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/courses")
@@ -24,10 +22,8 @@ public class CourseController {
 
     // GET — qualquer usuário autenticado (RF-26)
     @GetMapping
-    public Page<CourseDto> listAll(
-            @RequestParam(name = "q", required = false) String query,
-            @PageableDefault(size = 20, sort = "name") Pageable pageable) {
-        return courseService.listAll(query, pageable);
+    public List<CourseDto> listAll(@RequestParam(name = "q", required = false) String query) {
+        return courseService.listAll(query);
     }
 
     // POST — Admin (RF-25)

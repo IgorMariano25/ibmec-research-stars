@@ -1,8 +1,8 @@
 package br.com.ibmec.researchstars.course;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
 
 public interface CourseRepository extends JpaRepository<Course, Long> {
 
@@ -10,6 +10,5 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
 
     boolean existsByCodeIgnoreCaseAndIdNot(String code, Long id);
 
-    Page<Course> findByNameContainingIgnoreCaseOrCodeContainingIgnoreCase(
-            String name, String code, Pageable pageable);
+    List<Course> findByNameContainingIgnoreCaseOrCodeContainingIgnoreCase(String name, String code);
 }

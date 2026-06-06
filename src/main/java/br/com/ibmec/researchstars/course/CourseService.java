@@ -4,13 +4,13 @@ import br.com.ibmec.researchstars.common.exception.DuplicateResourceException;
 import br.com.ibmec.researchstars.course.dto.CourseDto;
 import br.com.ibmec.researchstars.course.dto.CreateCourseRequest;
 import br.com.ibmec.researchstars.course.mapper.CourseMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
 
 @Service
 @Transactional
@@ -25,12 +25,12 @@ public class CourseService {
     }
 
     @Transactional(readOnly = true)
-    public Page<CourseDto> listAll(String query, Pageable pageable) {
+    public List<CourseDto> listAll(String query) {
         if (StringUtils.hasText(query)) {
-            return courseRepository.findByNameContainingIgnoreCaseOrCodeContainingIgnoreCase(
-                    query, query, pageable).map(courseMapper::toDto);
+            return courseRepository.findByNameContainingIgnoreCaseOrCodeContainingIgnoreCase(query, query)
+                    .stream().map(courseMapper::toDto).toList();
         }
-        return courseRepository.findAll(pageable).map(courseMapper::toDto);
+        return courseRepository.findAll().stream().map(courseMapper::toDto).toList();
     }
 
     public CourseDto create(CreateCourseRequest request) {
