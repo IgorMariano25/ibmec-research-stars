@@ -1,8 +1,10 @@
 package br.com.ibmec.researchstars.professor.dto;
 
+import br.com.ibmec.researchstars.course.dto.CourseDto;
 import br.com.ibmec.researchstars.professor.Professor;
+
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.List;
 
 public record ProfessorDetailResponse(
     Long id,
@@ -12,7 +14,6 @@ public record ProfessorDetailResponse(
     String lattesNumber,
     String matricula,
     Professor.Status status,
-    Set<Long> courseIds,
+    List<CourseDto> courses,
     LocalDateTime createdAt
-) {
-}
+) {}

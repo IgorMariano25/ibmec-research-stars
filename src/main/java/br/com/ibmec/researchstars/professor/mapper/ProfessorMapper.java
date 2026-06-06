@@ -1,15 +1,16 @@
 package br.com.ibmec.researchstars.professor.mapper;
 
+import br.com.ibmec.researchstars.course.dto.CourseDto;
 import br.com.ibmec.researchstars.professor.Professor;
 import br.com.ibmec.researchstars.professor.dto.ProfessorApproveResponse;
 import br.com.ibmec.researchstars.professor.dto.ProfessorDetailResponse;
 import br.com.ibmec.researchstars.professor.dto.ProfessorListItemResponse;
-import java.util.HashSet;
+
+import java.util.List;
 
 public final class ProfessorMapper {
 
-    private ProfessorMapper() {
-    }
+    private ProfessorMapper() {}
 
     public static ProfessorListItemResponse toListItem(Professor professor) {
         return new ProfessorListItemResponse(
@@ -23,7 +24,7 @@ public final class ProfessorMapper {
         );
     }
 
-    public static ProfessorDetailResponse toDetail(Professor professor) {
+    public static ProfessorDetailResponse toDetail(Professor professor, List<CourseDto> courses) {
         return new ProfessorDetailResponse(
             professor.getId(),
             professor.getUserId(),
@@ -32,7 +33,7 @@ public final class ProfessorMapper {
             professor.getLattesNumber(),
             professor.getMatricula(),
             professor.getStatus(),
-            new HashSet<>(professor.getCourseIds()),
+            courses,
             professor.getCreatedAt()
         );
     }

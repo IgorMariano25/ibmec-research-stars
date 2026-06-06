@@ -1,5 +1,7 @@
 package br.com.ibmec.researchstars.professor;
 
+import br.com.ibmec.researchstars.course.CourseRepository;
+import br.com.ibmec.researchstars.course.dto.CourseDto;
 import br.com.ibmec.researchstars.professor.dto.PagedResponse;
 import br.com.ibmec.researchstars.professor.dto.ProfessorApproveResponse;
 import br.com.ibmec.researchstars.professor.dto.ProfessorDetailResponse;
@@ -15,10 +17,11 @@ import br.com.ibmec.researchstars.professor.integration.CurrentUserProvider;
 import br.com.ibmec.researchstars.professor.integration.ProfessorPublicationsGateway;
 import br.com.ibmec.researchstars.professor.mapper.ProfessorMapper;
 import jakarta.transaction.Transactional;
-import java.util.HashSet;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class ProfessorService {
@@ -27,34 +30,39 @@ public class ProfessorService {
     private final CurrentUserProvider currentUserProvider;
     private final CourseGateway courseGateway;
     private final ProfessorPublicationsGateway publicationsGateway;
+    private final CourseRepository courseRepository;
 
     public ProfessorService(
         ProfessorRepository repository,
         CurrentUserProvider currentUserProvider,
         CourseGateway courseGateway,
-        ProfessorPublicationsGateway publicationsGateway
+        ProfessorPublicationsGateway publicationsGateway,
+        CourseRepository courseRepository
     ) {
         this.repository = repository;
         this.currentUserProvider = currentUserProvider;
         this.courseGateway = courseGateway;
         this.publicationsGateway = publicationsGateway;
+        this.courseRepository = courseRepository;
     }
 
     public PagedResponse<ProfessorListItemResponse> list(Professor.Status status, String q, int page, int size) {
         var pageable = PageRequest.of(page, size, Sort.by("id").ascending());
-        var result = repository.findAll(ProfessorSpecifications.byFilters(status, q), pageable).map(ProfessorMapper::toListItem);
-        return new PagedResponse<>(result.getContent(), result.getNumber(), result.getSize(), result.getTotalElements(), result.getTotalPages());
+        var result = repository.findAll(ProfessorSpecifications.byFilters(status, q), pageable)
+                .map(ProfessorMapper::toListItem);
+        return new PagedResponse<>(result.getContent(), result.getNumber(), result.getSize(),
+                result.getTotalElements(), result.getTotalPages());
     }
 
     public ProfessorDetailResponse findById(Long id) {
-        return ProfessorMapper.toDetail(getProfessorOrThrow(id));
+        return toDetail(getProfessorOrThrow(id));
     }
 
     public ProfessorDetailResponse findMe() {
         var userId = currentUserProvider.getCurrentUserId();
         var professor = repository.findByUserId(userId)
             .orElseThrow(() -> new ProfessorNotFoundException("Professor not found for user: " + userId));
-        return ProfessorMapper.toDetail(professor);
+        return toDetail(professor);
     }
 
     @Transactional
@@ -83,15 +91,14 @@ public class ProfessorService {
         professor.setMatricula(request.matricula());
         professor.setLattesNumber(request.lattesNumber());
         var validCourseIds = courseGateway.keepOnlyExistingCourseIds(request.courseIds());
-        professor.setCourseIds(new HashSet<>(validCourseIds));
+        professor.setCourseIds(validCourseIds);
 
-        return ProfessorMapper.toDetail(repository.save(professor));
+        return toDetail(repository.save(professor));
     }
 
     @Transactional
     public void delete(Long id) {
-        var professor = getProfessorOrThrow(id);
-        repository.delete(professor);
+        repository.delete(getProfessorOrThrow(id));
     }
 
     public ProfessorPublicationsResponse findProfessorPublications(Long id) {
@@ -102,6 +109,15 @@ public class ProfessorService {
         } catch (RuntimeException exception) {
             throw new ProfessorIntegrationException("Error querying professor publications", exception);
         }
+    }
+
+    // Carrega os objetos Course completos e monta o DTO
+    private ProfessorDetailResponse toDetail(Professor professor) {
+        List<CourseDto> courses = courseRepository.findAllById(professor.getCourseIds())
+                .stream()
+                .map(c -> new CourseDto(c.getId(), c.getName(), c.getCode()))
+                .toList();
+        return ProfessorMapper.toDetail(professor, courses);
     }
 
     private Professor getProfessorOrThrow(Long id) {
