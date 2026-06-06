@@ -19,6 +19,7 @@ CREATE TABLE professors (
     user_id        INTEGER NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
     name           TEXT    NOT NULL,
     email          TEXT    NOT NULL UNIQUE,
+    matricula      TEXT    UNIQUE,
     lattes_number  TEXT    NOT NULL UNIQUE,
     status         TEXT    NOT NULL DEFAULT 'PENDING'
                        CHECK (status IN ('PENDING', 'APPROVED')),
