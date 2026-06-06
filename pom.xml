@@ -52,6 +52,14 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- DevTools: hot reload em ambiente de desenvolvimento (excluído do jar de produção) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+
         <!-- Flyway -->
         <dependency>
             <groupId>org.flywaydb</groupId>

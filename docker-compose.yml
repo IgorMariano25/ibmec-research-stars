@@ -1,0 +1,49 @@
+# ============================================================
+# DESENVOLVIMENTO (padrão)
+# Uso: docker compose up
+# - backend: mvn spring-boot:run com hot reload (devtools)
+# - frontend: npm run dev (Vite) com hot reload
+# O código é montado por bind mount; alterações refletem na hora.
+# ============================================================
+services:
+  backend:
+    image: maven:3.9-eclipse-temurin-21
+    container_name: irs-backend-dev
+    working_dir: /app
+    command: mvn -B spring-boot:run -Dmaven.test.skip=true
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:h2:file:/app/data/researchstars;AUTO_SERVER=TRUE
+    volumes:
+      - ./pom.xml:/app/pom.xml
+      - ./src:/app/src
+      - ./data:/app/data
+      - maven-repo:/root/.m2
+    networks:
+      - irs-net
+
+  frontend:
+    image: node:20-alpine
+    container_name: irs-frontend-dev
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_BASE_URL: http://localhost:8080/api/v1
+      CHOKIDAR_USEPOLLING: "true"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - irs-net
+
+networks:
+  irs-net:
+    driver: bridge
+
+volumes:
+  maven-repo:
