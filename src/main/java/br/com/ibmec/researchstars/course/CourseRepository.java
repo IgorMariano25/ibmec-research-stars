@@ -11,4 +11,3 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
   Page<Course> findByNameContainingIgnoreCaseOrCodeContainingIgnoreCase(
       String name, String code, Pageable pageable);
 }
-
