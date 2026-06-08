@@ -42,11 +42,14 @@ class ProfessorServiceTest {
     @Mock
     private ProfessorPublicationsGateway publicationsGateway;
 
+    @Mock
+    private br.com.ibmec.researchstars.course.CourseRepository courseRepository;
+
     private ProfessorService service;
 
     @BeforeEach
     void setUp() {
-        service = new ProfessorService(repository, currentUserProvider, courseGateway, publicationsGateway);
+        service = new ProfessorService(repository, currentUserProvider, courseGateway, publicationsGateway, courseRepository);
     }
 
     // ── list ──────────────────────────────────────────────────────────────────
