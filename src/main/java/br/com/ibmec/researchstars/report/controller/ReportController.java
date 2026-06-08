@@ -1,7 +1,7 @@
-package br.com.ibmec.researchstars.metrics.controller;
+package br.com.ibmec.researchstars.report.controller;
 
-import br.com.ibmec.researchstars.metrics.dto.CourseComplianceDto;
-import br.com.ibmec.researchstars.metrics.service.ReportService;
+import br.com.ibmec.researchstars.report.dto.CourseComplianceDto;
+import br.com.ibmec.researchstars.report.service.ReportService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;

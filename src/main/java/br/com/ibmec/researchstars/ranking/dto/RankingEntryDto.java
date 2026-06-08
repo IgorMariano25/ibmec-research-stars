@@ -1,4 +1,4 @@
-package br.com.ibmec.researchstars.metrics.dto;
+package br.com.ibmec.researchstars.ranking.dto;
 
 public class RankingEntryDto {
 

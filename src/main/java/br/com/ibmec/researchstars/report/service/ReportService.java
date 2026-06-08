@@ -1,8 +1,8 @@
-package br.com.ibmec.researchstars.metrics.service;
+package br.com.ibmec.researchstars.report.service;
 
 import br.com.ibmec.researchstars.course.Course;
 import br.com.ibmec.researchstars.course.CourseRepository;
-import br.com.ibmec.researchstars.metrics.dto.CourseComplianceDto;
+import br.com.ibmec.researchstars.report.dto.CourseComplianceDto;
 import br.com.ibmec.researchstars.professor.Professor;
 import br.com.ibmec.researchstars.professor.ProfessorRepository;
 import br.com.ibmec.researchstars.publication.repository.PublicationRepository;

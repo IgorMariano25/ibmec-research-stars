@@ -1,4 +1,4 @@
-package br.com.ibmec.researchstars.metrics.dto;
+package br.com.ibmec.researchstars.report.dto;
 
 public class CourseComplianceDto {
 

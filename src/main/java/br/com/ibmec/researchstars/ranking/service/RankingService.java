@@ -1,7 +1,7 @@
-package br.com.ibmec.researchstars.metrics.service;
+package br.com.ibmec.researchstars.ranking.service;
 
-import br.com.ibmec.researchstars.metrics.dto.MyRankingResponseDto;
-import br.com.ibmec.researchstars.metrics.dto.RankingEntryDto;
+import br.com.ibmec.researchstars.ranking.dto.MyRankingResponseDto;
+import br.com.ibmec.researchstars.ranking.dto.RankingEntryDto;
 import br.com.ibmec.researchstars.professor.Professor;
 import br.com.ibmec.researchstars.professor.ProfessorRepository;
 import br.com.ibmec.researchstars.publication.repository.PublicationRepository;
@@ -46,8 +46,8 @@ public class RankingService {
     }
 
     @Transactional(readOnly = true)
-    public MyRankingResponseDto getMyRanking(Long userId) {
-        Professor professor = professorRepository.findByUserId(userId)
+    public MyRankingResponseDto getMyRanking(Long professorId) {
+        Professor professor = professorRepository.findById(professorId)
                 .orElseThrow(() -> new IllegalArgumentException("Professor not found"));
 
         List<RankingEntryDto> allEntries = buildRankingEntries();

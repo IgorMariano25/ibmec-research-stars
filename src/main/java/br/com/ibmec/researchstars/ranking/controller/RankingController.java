@@ -1,9 +1,9 @@
-package br.com.ibmec.researchstars.metrics.controller;
+package br.com.ibmec.researchstars.ranking.controller;
 
 import br.com.ibmec.researchstars.auth.AppUserDetails;
-import br.com.ibmec.researchstars.metrics.dto.MyRankingResponseDto;
-import br.com.ibmec.researchstars.metrics.dto.RankingEntryDto;
-import br.com.ibmec.researchstars.metrics.service.RankingService;
+import br.com.ibmec.researchstars.ranking.dto.MyRankingResponseDto;
+import br.com.ibmec.researchstars.ranking.dto.RankingEntryDto;
+import br.com.ibmec.researchstars.ranking.service.RankingService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
