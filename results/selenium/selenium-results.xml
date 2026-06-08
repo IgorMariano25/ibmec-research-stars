@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="2" failures="0" errors="0" time="7.198">
+  <testsuite name="Running project IBMEC Research Stars - Testes Funcionais" errors="0" failures="0" skipped="0" timestamp="2026-06-08T15:24:14" time="7.121" tests="2">
+    <testcase classname="Running project IBMEC Research Stars - Testes Funcionais Running suite Suite Funcional Completa Running test Login do administrador com sucesso" name="Running project IBMEC Research Stars - Testes Funcionais Running suite Suite Funcional Completa Running test Login do administrador com sucesso" time="3.437">
+    </testcase>
+    <testcase classname="Running project IBMEC Research Stars - Testes Funcionais Running suite Suite Funcional Completa Running test Login com credenciais invalidas exibe erro" name="Running project IBMEC Research Stars - Testes Funcionais Running suite Suite Funcional Completa Running test Login com credenciais invalidas exibe erro" time="2.778">
+    </testcase>
+  </testsuite>
+</testsuites>

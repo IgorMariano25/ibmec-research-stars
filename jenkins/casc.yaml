@@ -1,0 +1,30 @@
+# ============================================================
+# Jenkins Configuration as Code (JCasC)
+# CI de Testes — IBMEC Research Stars
+# ============================================================
+jenkins:
+  systemMessage: "IBMEC Research Stars — Pipeline de Testes (Unidade • Desempenho • Funcional)"
+  numExecutors: 2
+  scmCheckoutRetryCount: 2
+  mode: NORMAL
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: admin
+          password: "${JENKINS_ADMIN_PASSWORD:-admin}"
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+
+security:
+  globalJobDslSecurityConfiguration:
+    useScriptSecurity: false
+
+unclassified:
+  location:
+    url: "http://localhost:8081/"
+
+# Cria os jobs a partir do script Job DSL no startup
+jobs:
+  - file: /var/jenkins_conf/seed.groovy

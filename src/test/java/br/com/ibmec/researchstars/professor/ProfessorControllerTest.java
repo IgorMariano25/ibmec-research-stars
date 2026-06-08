@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import br.com.ibmec.researchstars.course.dto.CourseDto;
 import br.com.ibmec.researchstars.professor.dto.PagedResponse;
 import br.com.ibmec.researchstars.professor.dto.ProfessorApproveResponse;
 import br.com.ibmec.researchstars.professor.dto.ProfessorDetailResponse;
@@ -27,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -35,6 +37,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+@Tag("unit")
 @ExtendWith(MockitoExtension.class)
 class ProfessorControllerTest {
 
@@ -46,39 +49,38 @@ class ProfessorControllerTest {
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders
-            .standaloneSetup(new ProfessorController(service))
-            .setControllerAdvice(new ProfessorExceptionHandler())
-            .build();
+                .standaloneSetup(new ProfessorController(service))
+                .setControllerAdvice(new ProfessorExceptionHandler())
+                .build();
     }
 
     @Test
     void listReturnsPagedProfessors() throws Exception {
         var item = new ProfessorListItemResponse(
-            1L,
-            "Ada Lovelace",
-            "ada@ibmec.br",
-            "LAT-001",
-            "MAT-001",
-            Professor.Status.PENDING,
-            null
-        );
+                1L,
+                "Ada Lovelace",
+                "ada@ibmec.br",
+                "LAT-001",
+                "MAT-001",
+                Professor.Status.PENDING,
+                null);
         when(service.list(Professor.Status.PENDING, "ada", 1, 5))
-            .thenReturn(new PagedResponse<>(List.of(item), 1, 5, 1, 1));
+                .thenReturn(new PagedResponse<>(List.of(item), 1, 5, 1, 1));
 
         mockMvc.perform(get("/api/v1/professors")
                 .param("status", "PENDING")
                 .param("q", "ada")
                 .param("page", "1")
                 .param("size", "5"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.content", hasSize(1)))
-            .andExpect(jsonPath("$.content[0].id").value(1))
-            .andExpect(jsonPath("$.content[0].name").value("Ada Lovelace"))
-            .andExpect(jsonPath("$.content[0].status").value("PENDING"))
-            .andExpect(jsonPath("$.page").value(1))
-            .andExpect(jsonPath("$.size").value(5))
-            .andExpect(jsonPath("$.totalElements").value(1))
-            .andExpect(jsonPath("$.totalPages").value(1));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(1)))
+                .andExpect(jsonPath("$.content[0].id").value(1))
+                .andExpect(jsonPath("$.content[0].name").value("Ada Lovelace"))
+                .andExpect(jsonPath("$.content[0].status").value("PENDING"))
+                .andExpect(jsonPath("$.page").value(1))
+                .andExpect(jsonPath("$.size").value(5))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.totalPages").value(1));
     }
 
     @Test
@@ -86,11 +88,11 @@ class ProfessorControllerTest {
         when(service.findById(1L)).thenReturn(detailResponse());
 
         mockMvc.perform(get("/api/v1/professors/1"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").value(1))
-            .andExpect(jsonPath("$.userId").value(10))
-            .andExpect(jsonPath("$.name").value("Ada Lovelace"))
-            .andExpect(jsonPath("$.courseIds", hasSize(2)));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.userId").value(10))
+                .andExpect(jsonPath("$.name").value("Ada Lovelace"))
+                .andExpect(jsonPath("$.courses", hasSize(2)));
     }
 
     @Test
@@ -98,9 +100,9 @@ class ProfessorControllerTest {
         when(service.findById(404L)).thenThrow(new ProfessorNotFoundException(404L));
 
         mockMvc.perform(get("/api/v1/professors/404"))
-            .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.status").value(404))
-            .andExpect(jsonPath("$.message").value("Professor not found: 404"));
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.message").value("Professor not found: 404"));
     }
 
     @Test
@@ -108,9 +110,9 @@ class ProfessorControllerTest {
         when(service.findMe()).thenReturn(detailResponse());
 
         mockMvc.perform(get("/api/v1/professors/me"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").value(1))
-            .andExpect(jsonPath("$.email").value("ada@ibmec.br"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.email").value("ada@ibmec.br"));
     }
 
     @Test
@@ -118,9 +120,9 @@ class ProfessorControllerTest {
         when(service.approve(1L)).thenReturn(new ProfessorApproveResponse(1L, Professor.Status.APPROVED));
 
         mockMvc.perform(post("/api/v1/professors/1/approve"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").value(1))
-            .andExpect(jsonPath("$.status").value("APPROVED"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.status").value("APPROVED"));
     }
 
     @Test
@@ -128,9 +130,9 @@ class ProfessorControllerTest {
         when(service.approve(1L)).thenThrow(new ProfessorStateException("Professor is already approved"));
 
         mockMvc.perform(post("/api/v1/professors/1/approve"))
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.status").value(400))
-            .andExpect(jsonPath("$.message").value("Professor is already approved"));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value("Professor is already approved"));
     }
 
     @Test
@@ -140,18 +142,18 @@ class ProfessorControllerTest {
         mockMvc.perform(patch("/api/v1/professors/1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
-                    {
-                      "name": "Ada Lovelace",
-                      "email": "ada@ibmec.br",
-                      "matricula": "MAT-001",
-                      "lattesNumber": "LAT-001",
-                      "courseIds": [101, 102]
-                    }
-                    """))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").value(1))
-            .andExpect(jsonPath("$.name").value("Ada Lovelace"))
-            .andExpect(jsonPath("$.lattesNumber").value("LAT-001"));
+                        {
+                          "name": "Ada Lovelace",
+                          "email": "ada@ibmec.br",
+                          "matricula": "MAT-001",
+                          "lattesNumber": "LAT-001",
+                          "courseIds": [101, 102]
+                        }
+                        """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("Ada Lovelace"))
+                .andExpect(jsonPath("$.lattesNumber").value("LAT-001"));
 
         verify(service).update(eq(1L), any(ProfessorUpdateRequest.class));
     }
@@ -159,28 +161,28 @@ class ProfessorControllerTest {
     @Test
     void updateReturnsConflictWhenUniqueFieldsAreAlreadyInUse() throws Exception {
         when(service.update(eq(1L), any(ProfessorUpdateRequest.class)))
-            .thenThrow(new ProfessorConflictException("Email already in use"));
+                .thenThrow(new ProfessorConflictException("Email already in use"));
 
         mockMvc.perform(patch("/api/v1/professors/1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
-                    {
-                      "name": "Ada Lovelace",
-                      "email": "ada@ibmec.br",
-                      "matricula": "MAT-001",
-                      "lattesNumber": "LAT-001",
-                      "courseIds": [101, 102]
-                    }
-                    """))
-            .andExpect(status().isConflict())
-            .andExpect(jsonPath("$.status").value(409))
-            .andExpect(jsonPath("$.message").value("Email already in use"));
+                        {
+                          "name": "Ada Lovelace",
+                          "email": "ada@ibmec.br",
+                          "matricula": "MAT-001",
+                          "lattesNumber": "LAT-001",
+                          "courseIds": [101, 102]
+                        }
+                        """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.message").value("Email already in use"));
     }
 
     @Test
     void deleteReturnsNoContent() throws Exception {
         mockMvc.perform(delete("/api/v1/professors/1"))
-            .andExpect(status().isNoContent());
+                .andExpect(status().isNoContent());
 
         verify(service).delete(1L);
     }
@@ -190,45 +192,45 @@ class ProfessorControllerTest {
         doThrow(new ProfessorNotFoundException(404L)).when(service).delete(404L);
 
         mockMvc.perform(delete("/api/v1/professors/404"))
-            .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.status").value(404))
-            .andExpect(jsonPath("$.message").value("Professor not found: 404"));
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.message").value("Professor not found: 404"));
     }
 
     @Test
     void publicationsReturnsProfessorPublications() throws Exception {
         when(service.findProfessorPublications(1L))
-            .thenReturn(new ProfessorPublicationsResponse(1L, List.<Object>of(Map.of("title", "Paper A"))));
+                .thenReturn(new ProfessorPublicationsResponse(1L, List.<Object>of(Map.of("title", "Paper A"))));
 
         mockMvc.perform(get("/api/v1/professors/1/publications"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.professorId").value(1))
-            .andExpect(jsonPath("$.publications", hasSize(1)))
-            .andExpect(jsonPath("$.publications[0].title").value("Paper A"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.professorId").value(1))
+                .andExpect(jsonPath("$.publications", hasSize(1)))
+                .andExpect(jsonPath("$.publications[0].title").value("Paper A"));
     }
 
     @Test
     void publicationsReturnsBadGatewayWhenIntegrationFails() throws Exception {
         when(service.findProfessorPublications(1L))
-            .thenThrow(new ProfessorIntegrationException("Error querying professor publications", new RuntimeException()));
+                .thenThrow(new ProfessorIntegrationException("Error querying professor publications",
+                        new RuntimeException()));
 
         mockMvc.perform(get("/api/v1/professors/1/publications"))
-            .andExpect(status().isBadGateway())
-            .andExpect(jsonPath("$.status").value(502))
-            .andExpect(jsonPath("$.message").value("Error querying professor publications"));
+                .andExpect(status().isBadGateway())
+                .andExpect(jsonPath("$.status").value(502))
+                .andExpect(jsonPath("$.message").value("Error querying professor publications"));
     }
 
     private ProfessorDetailResponse detailResponse() {
         return new ProfessorDetailResponse(
-            1L,
-            10L,
-            "Ada Lovelace",
-            "ada@ibmec.br",
-            "LAT-001",
-            "MAT-001",
-            Professor.Status.APPROVED,
-            Set.of(101L, 102L),
-            null
-        );
+                1L,
+                10L,
+                "Ada Lovelace",
+                "ada@ibmec.br",
+                "LAT-001",
+                "MAT-001",
+                Professor.Status.APPROVED,
+                List.of(new CourseDto(101L, "Curso A", "A"), new CourseDto(102L, "Curso B", "B")),
+                null);
     }
 }

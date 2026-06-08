@@ -1,0 +1,79 @@
+# ============================================================
+# AMBIENTE DE CI DE TESTES — IBMEC Research Stars
+# Uso:
+#   docker compose -f docker-compose.jenkins.yml up -d --build
+#
+# Sobe 3 serviços na mesma rede:
+#   - backend   (Spring Boot)   -> alvo dos testes de desempenho (JMeter)
+#   - frontend  (nginx + SPA)   -> alvo dos testes funcionais (Selenium)
+#   - jenkins   (CI customizado)-> roda os 3 jobs de teste
+#
+# Jenkins:  http://localhost:8081   (login: admin / admin)
+# Os jobs são criados automaticamente na pasta "research-stars-testes".
+#
+# Projeto com nome FIXO e exclusivo para este ambiente de CI, para nunca
+# colidir com o de desenvolvimento (docker-compose.yml usa name: irs-dev).
+# Sem isso, ambos herdariam o nome da pasta e um derrubaria o backend/
+# frontend do outro (mesmos nomes de serviço).
+# ============================================================
+name: ap2_es_ibmec_research-starts
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: irs-ci-backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:h2:file:/app/data/researchstars
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD: ""
+    volumes:
+      # Compartilha o mesmo banco local usado pelo docker-compose.yml de dev.
+      - ./data:/app/data
+    networks:
+      - irs-ci-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: irs-ci-frontend
+    ports:
+      # Acesso manual ao front-end de CI: http://localhost:5174
+      # O Selenium continua usando a rede interna em http://frontend.
+      - "5174:80"
+    depends_on:
+      backend:
+        condition: service_started
+    networks:
+      - irs-ci-net
+
+  jenkins:
+    build:
+      context: ./jenkins
+      dockerfile: Dockerfile
+    container_name: irs-ci-jenkins
+    user: root
+    privileged: false
+    environment:
+      JENKINS_ADMIN_PASSWORD: admin
+    ports:
+      - "8081:8080"   # UI do Jenkins
+      - "50000:50000" # agentes JNLP
+    volumes:
+      - jenkins-home:/var/jenkins_home
+      # Código-fonte + planos de teste montados como workspace dos jobs
+      - ./:/workspace
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - irs-ci-net
+
+networks:
+  irs-ci-net:
+    driver: bridge
+
+volumes:
+  jenkins-home:

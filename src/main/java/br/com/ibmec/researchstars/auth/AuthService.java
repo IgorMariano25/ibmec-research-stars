@@ -10,9 +10,11 @@ import br.com.ibmec.researchstars.professor.Professor;
 import br.com.ibmec.researchstars.professor.ProfessorRepository;
 import br.com.ibmec.researchstars.user.User;
 import br.com.ibmec.researchstars.user.UserRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Set;
@@ -42,10 +44,10 @@ public class AuthService {
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.email())) {
-            throw new RuntimeException("Email já cadastrado");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email já cadastrado");
         }
         if (professorRepository.existsByLattesNumber(request.lattesNumber())) {
-            throw new RuntimeException("Número Lattes já cadastrado");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Número Lattes já cadastrado");
         }
 
         User user = new User();
@@ -56,7 +58,7 @@ public class AuthService {
 
         List<Course> courses = courseRepository.findAllById(request.courseIds());
         if (courses.size() != request.courseIds().size()) {
-            throw new RuntimeException("Um ou mais cursos não encontrados");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Um ou mais cursos não encontrados");
         }
         Set<Long> courseIds = courses.stream().map(Course::getId).collect(Collectors.toSet());
 
@@ -77,10 +79,10 @@ public class AuthService {
 
     public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new RuntimeException("Credenciais inválidas"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciais inválidas"));
 
         if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
-            throw new RuntimeException("Credenciais inválidas");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciais inválidas");
         }
 
         String token = jwtService.generateToken(user.getEmail());
@@ -90,7 +92,7 @@ public class AuthService {
         }
 
         Professor professor = professorRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new RuntimeException("Perfil não encontrado"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Perfil não encontrado"));
 
         return new AuthResponse(token, user.getEmail(), professor.getName(),
                 user.getRole().name(), professor.getStatus().name());

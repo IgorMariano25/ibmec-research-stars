@@ -22,9 +22,15 @@ public class DataInitializer {
     @EventListener(ApplicationReadyEvent.class)
     @Transactional
     public void seedAdmin() {
-        if (userRepository.existsByEmail("admin@ibmec.br")) {
+        var existingAdmin = userRepository.findByEmail("admin@ibmec.br");
+        if (existingAdmin.isPresent()) {
+            User admin = existingAdmin.get();
+            admin.setPasswordHash(passwordEncoder.encode("admin123"));
+            admin.setRole(User.Role.ADMIN);
+            userRepository.save(admin);
             return;
         }
+
         User admin = new User();
         admin.setEmail("admin@ibmec.br");
         admin.setPasswordHash(passwordEncoder.encode("admin123"));

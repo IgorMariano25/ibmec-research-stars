@@ -1,0 +1,147 @@
+{
+  "id": "a1b2c3d4-0001-4000-8000-000000000001",
+  "version": "2.0",
+  "name": "IBMEC Research Stars - Testes Funcionais",
+  "url": "http://frontend",
+  "tests": [
+    {
+      "id": "11111111-0001-4000-8000-000000000001",
+      "name": "Login do administrador com sucesso",
+      "commands": [
+        {
+          "id": "c-login-01",
+          "comment": "Abre a página de login",
+          "command": "open",
+          "target": "/login",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c-login-02",
+          "comment": "Aguarda o formulário",
+          "command": "waitForElementVisible",
+          "target": "css=input[type=\"email\"]",
+          "targets": [],
+          "value": "10000"
+        },
+        {
+          "id": "c-login-03",
+          "comment": "Preenche e-mail do admin",
+          "command": "type",
+          "target": "css=input[type=\"email\"]",
+          "targets": [],
+          "value": "admin@ibmec.br"
+        },
+        {
+          "id": "c-login-04",
+          "comment": "Preenche a senha",
+          "command": "type",
+          "target": "css=input[type=\"password\"]",
+          "targets": [],
+          "value": "admin123"
+        },
+        {
+          "id": "c-login-05",
+          "comment": "Clica em Entrar",
+          "command": "click",
+          "target": "css=button[type=\"submit\"]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c-login-06",
+          "comment": "Aguarda o dashboard do admin carregar",
+          "command": "waitForElementVisible",
+          "target": "xpath=//*[contains(text(),'Dashboard de conformidade')]",
+          "targets": [],
+          "value": "15000"
+        },
+        {
+          "id": "c-login-07",
+          "comment": "Verifica a URL do dashboard",
+          "command": "assertText",
+          "target": "xpath=//*[contains(text(),'Dashboard de conformidade')]",
+          "targets": [],
+          "value": "Dashboard de conformidade"
+        }
+      ]
+    },
+    {
+      "id": "11111111-0002-4000-8000-000000000002",
+      "name": "Login com credenciais invalidas exibe erro",
+      "commands": [
+        {
+          "id": "c-err-01",
+          "comment": "Abre a página de login",
+          "command": "open",
+          "target": "/login",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c-err-02",
+          "comment": "Aguarda o formulário",
+          "command": "waitForElementVisible",
+          "target": "css=input[type=\"email\"]",
+          "targets": [],
+          "value": "10000"
+        },
+        {
+          "id": "c-err-03",
+          "comment": "Preenche e-mail inválido",
+          "command": "type",
+          "target": "css=input[type=\"email\"]",
+          "targets": [],
+          "value": "naoexiste@ibmec.br"
+        },
+        {
+          "id": "c-err-04",
+          "comment": "Preenche senha incorreta",
+          "command": "type",
+          "target": "css=input[type=\"password\"]",
+          "targets": [],
+          "value": "senhaerrada"
+        },
+        {
+          "id": "c-err-05",
+          "comment": "Clica em Entrar",
+          "command": "click",
+          "target": "css=button[type=\"submit\"]",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c-err-06",
+          "comment": "Aguarda o alerta de erro aparecer",
+          "command": "waitForElementVisible",
+          "target": "css=.MuiAlert-message",
+          "targets": [],
+          "value": "15000"
+        },
+        {
+          "id": "c-err-07",
+          "comment": "Confirma que continua na tela de login",
+          "command": "assertElementPresent",
+          "target": "css=button[type=\"submit\"]",
+          "targets": [],
+          "value": ""
+        }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "22222222-0001-4000-8000-000000000001",
+      "name": "Suite Funcional Completa",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "11111111-0001-4000-8000-000000000001",
+        "11111111-0002-4000-8000-000000000002"
+      ]
+    }
+  ],
+  "urls": ["http://frontend", "http://localhost:5173"],
+  "plugins": []
+}

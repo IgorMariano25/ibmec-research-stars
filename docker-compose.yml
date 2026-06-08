@@ -4,7 +4,10 @@
 # - backend: mvn spring-boot:run com hot reload (devtools)
 # - frontend: npm run dev (Vite) com hot reload
 # O código é montado por bind mount; alterações refletem na hora.
+#
 # ============================================================
+name: irs-dev
+
 services:
   backend:
     image: maven:3.9-eclipse-temurin-21
@@ -14,7 +17,9 @@ services:
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:h2:file:/app/data/researchstars;AUTO_SERVER=TRUE
+      SPRING_DATASOURCE_URL: jdbc:h2:file:/app/data/researchstars
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD: ""
     volumes:
       - ./pom.xml:/app/pom.xml
       - ./src:/app/src

@@ -1,0 +1,12 @@
+# Plugins necessários para o pipeline de testes (CI de Testes IBMEC Research Stars)
+configuration-as-code
+job-dsl
+workflow-aggregator
+pipeline-stage-view
+git
+junit
+htmlpublisher
+performance
+timestamper
+ws-cleanup
+matrix-auth

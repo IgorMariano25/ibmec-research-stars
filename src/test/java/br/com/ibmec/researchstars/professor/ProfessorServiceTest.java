@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import br.com.ibmec.researchstars.course.CourseRepository;
 import br.com.ibmec.researchstars.professor.dto.ProfessorUpdateRequest;
 import br.com.ibmec.researchstars.professor.exception.ProfessorConflictException;
 import br.com.ibmec.researchstars.professor.exception.ProfessorIntegrationException;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -27,6 +29,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 
+@Tag("unit")
 @ExtendWith(MockitoExtension.class)
 class ProfessorServiceTest {
 
@@ -42,11 +45,15 @@ class ProfessorServiceTest {
     @Mock
     private ProfessorPublicationsGateway publicationsGateway;
 
+    @Mock
+    private CourseRepository courseRepository;
+
     private ProfessorService service;
 
     @BeforeEach
     void setUp() {
-        service = new ProfessorService(repository, currentUserProvider, courseGateway, publicationsGateway);
+        service = new ProfessorService(repository, currentUserProvider, courseGateway, publicationsGateway,
+                courseRepository);
     }
 
     // ── list ──────────────────────────────────────────────────────────────────
@@ -56,7 +63,7 @@ class ProfessorServiceTest {
     void listReturnsMappedPage() {
         var professor = buildProfessor(1L, Professor.Status.PENDING);
         when(repository.findAll(any(Specification.class), any(PageRequest.class)))
-            .thenReturn(new PageImpl<>(List.of(professor)));
+                .thenReturn(new PageImpl<>(List.of(professor)));
 
         var result = service.list(Professor.Status.PENDING, "ada", 0, 20);
 
@@ -83,8 +90,8 @@ class ProfessorServiceTest {
         when(repository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.findById(99L))
-            .isInstanceOf(ProfessorNotFoundException.class)
-            .hasMessageContaining("99");
+                .isInstanceOf(ProfessorNotFoundException.class)
+                .hasMessageContaining("99");
     }
 
     // ── findMe ────────────────────────────────────────────────────────────────
@@ -105,7 +112,7 @@ class ProfessorServiceTest {
         when(repository.findByUserId(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.findMe())
-            .isInstanceOf(ProfessorNotFoundException.class);
+                .isInstanceOf(ProfessorNotFoundException.class);
     }
 
     // ── approve ───────────────────────────────────────────────────────────────
@@ -127,8 +134,8 @@ class ProfessorServiceTest {
         when(repository.findById(1L)).thenReturn(Optional.of(buildProfessor(1L, Professor.Status.APPROVED)));
 
         assertThatThrownBy(() -> service.approve(1L))
-            .isInstanceOf(ProfessorStateException.class)
-            .hasMessageContaining("already approved");
+                .isInstanceOf(ProfessorStateException.class)
+                .hasMessageContaining("already approved");
     }
 
     @Test
@@ -136,7 +143,7 @@ class ProfessorServiceTest {
         when(repository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.approve(99L))
-            .isInstanceOf(ProfessorNotFoundException.class);
+                .isInstanceOf(ProfessorNotFoundException.class);
     }
 
     // ── update ────────────────────────────────────────────────────────────────
@@ -168,8 +175,8 @@ class ProfessorServiceTest {
         when(repository.existsByEmailAndIdNot("taken@ibmec.br", 1L)).thenReturn(true);
 
         assertThatThrownBy(() -> service.update(1L, request))
-            .isInstanceOf(ProfessorConflictException.class)
-            .hasMessageContaining("Email");
+                .isInstanceOf(ProfessorConflictException.class)
+                .hasMessageContaining("Email");
     }
 
     @Test
@@ -182,8 +189,8 @@ class ProfessorServiceTest {
         when(repository.existsByLattesNumberAndIdNot("LAT-TAKEN", 1L)).thenReturn(true);
 
         assertThatThrownBy(() -> service.update(1L, request))
-            .isInstanceOf(ProfessorConflictException.class)
-            .hasMessageContaining("Lattes");
+                .isInstanceOf(ProfessorConflictException.class)
+                .hasMessageContaining("Lattes");
     }
 
     // ── delete ────────────────────────────────────────────────────────────────
@@ -203,7 +210,7 @@ class ProfessorServiceTest {
         when(repository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.delete(99L))
-            .isInstanceOf(ProfessorNotFoundException.class);
+                .isInstanceOf(ProfessorNotFoundException.class);
     }
 
     // ── findProfessorPublications ─────────────────────────────────────────────
@@ -223,11 +230,11 @@ class ProfessorServiceTest {
     void findProfessorPublicationsThrowsIntegrationExceptionWhenGatewayFails() {
         when(repository.findById(1L)).thenReturn(Optional.of(buildProfessor(1L, Professor.Status.APPROVED)));
         when(publicationsGateway.findPublicationsByProfessorId(1L))
-            .thenThrow(new RuntimeException("gateway down"));
+                .thenThrow(new RuntimeException("gateway down"));
 
         assertThatThrownBy(() -> service.findProfessorPublications(1L))
-            .isInstanceOf(ProfessorIntegrationException.class)
-            .hasMessageContaining("publications");
+                .isInstanceOf(ProfessorIntegrationException.class)
+                .hasMessageContaining("publications");
     }
 
     // ── helpers ───────────────────────────────────────────────────────────────
