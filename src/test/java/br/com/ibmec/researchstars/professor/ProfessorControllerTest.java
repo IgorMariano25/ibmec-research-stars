@@ -26,7 +26,6 @@ import br.com.ibmec.researchstars.professor.exception.ProfessorNotFoundException
 import br.com.ibmec.researchstars.professor.exception.ProfessorStateException;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
