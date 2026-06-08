@@ -227,7 +227,7 @@ class ProfessorControllerTest {
             "LAT-001",
             "MAT-001",
             Professor.Status.APPROVED,
-            Set.of(101L, 102L),
+            List.of(),
             null
         );
     }
