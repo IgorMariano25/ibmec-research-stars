@@ -2,19 +2,28 @@ package br.com.ibmec.researchstars.ranking.dto;
 
 public class RankingEntryDto {
 
+    private int rank;
     private Long professorId;
     private String name;
     private String lattesNumber;
-    private long validatedPublications;
+    private long validatedPublicationsLast3Years;
 
     public RankingEntryDto() {
     }
 
-    public RankingEntryDto(Long professorId, String name, String lattesNumber, long validatedPublications) {
+    public RankingEntryDto(Long professorId, String name, String lattesNumber, long validatedPublicationsLast3Years) {
         this.professorId = professorId;
         this.name = name;
         this.lattesNumber = lattesNumber;
-        this.validatedPublications = validatedPublications;
+        this.validatedPublicationsLast3Years = validatedPublicationsLast3Years;
+    }
+
+    public int getRank() {
+        return rank;
+    }
+
+    public void setRank(int rank) {
+        this.rank = rank;
     }
 
     public Long getProfessorId() {
@@ -41,11 +50,11 @@ public class RankingEntryDto {
         this.lattesNumber = lattesNumber;
     }
 
-    public long getValidatedPublications() {
-        return validatedPublications;
+    public long getValidatedPublicationsLast3Years() {
+        return validatedPublicationsLast3Years;
     }
 
-    public void setValidatedPublications(long validatedPublications) {
-        this.validatedPublications = validatedPublications;
+    public void setValidatedPublicationsLast3Years(long validatedPublicationsLast3Years) {
+        this.validatedPublicationsLast3Years = validatedPublicationsLast3Years;
     }
 }
