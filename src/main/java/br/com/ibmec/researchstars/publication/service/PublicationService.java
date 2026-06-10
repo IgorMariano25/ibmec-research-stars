@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 
 @Service
@@ -24,15 +25,18 @@ public class PublicationService {
     private final PublicationRepository publicationRepository;
     private final ProfessorRepository professorRepository;
     private final PublicationMapper mapper;
+    private final Clock clock;
 
     public PublicationService(
             PublicationRepository publicationRepository,
             ProfessorRepository professorRepository,
-            PublicationMapper mapper
+            PublicationMapper mapper,
+            Clock clock
     ) {
         this.publicationRepository = publicationRepository;
         this.professorRepository = professorRepository;
         this.mapper = mapper;
+        this.clock = clock;
     }
 
     // GET /publications (Admin) — RF-14, RF-20
@@ -103,7 +107,7 @@ public class PublicationService {
         var publication = getPublicationOrThrow(id);
         publication.setStatus(PublicationStatus.VALIDATED);
         publication.setValidatedByUserId(adminUserId);
-        publication.setValidatedAt(LocalDateTime.now());
+        publication.setValidatedAt(LocalDateTime.now(clock));
         return toResponse(publicationRepository.save(publication));
     }
 
@@ -113,7 +117,7 @@ public class PublicationService {
         var publication = getPublicationOrThrow(id);
         publication.setStatus(PublicationStatus.REJECTED);
         publication.setValidatedByUserId(adminUserId);
-        publication.setValidatedAt(LocalDateTime.now());
+        publication.setValidatedAt(LocalDateTime.now(clock));
         return toResponse(publicationRepository.save(publication));
     }
 
