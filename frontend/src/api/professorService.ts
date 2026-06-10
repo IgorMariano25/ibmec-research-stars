@@ -56,6 +56,24 @@ export const professorService = {
     const { data } = await httpClient.post<Professor>(`/professors/${id}/approve`);
     return data;
   },
+  async requestCourseChange(courseIds: number[]): Promise<Professor> {
+    const { data } = await httpClient.post<Professor>('/professors/me/course-change-request', {
+      courseIds,
+    });
+    return data;
+  },
+  async approveCourseChange(id: number): Promise<Professor> {
+    const { data } = await httpClient.post<Professor>(
+      `/professors/${id}/course-change-request/approve`,
+    );
+    return data;
+  },
+  async rejectCourseChange(id: number): Promise<Professor> {
+    const { data } = await httpClient.post<Professor>(
+      `/professors/${id}/course-change-request/reject`,
+    );
+    return data;
+  },
   async update(id: number, payload: Partial<Professor> & { courseIds?: number[] }): Promise<Professor> {
     const { data } = await httpClient.patch<Professor>(`/professors/${id}`, payload);
     return data;

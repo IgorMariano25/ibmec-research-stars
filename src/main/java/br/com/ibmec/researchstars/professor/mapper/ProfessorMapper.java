@@ -3,6 +3,7 @@ package br.com.ibmec.researchstars.professor.mapper;
 import br.com.ibmec.researchstars.course.dto.CourseDto;
 import br.com.ibmec.researchstars.professor.Professor;
 import br.com.ibmec.researchstars.professor.dto.ProfessorApproveResponse;
+import br.com.ibmec.researchstars.professor.dto.ProfessorCourseChangeRequestDto;
 import br.com.ibmec.researchstars.professor.dto.ProfessorDetailResponse;
 import br.com.ibmec.researchstars.professor.dto.ProfessorListItemResponse;
 
@@ -25,7 +26,11 @@ public final class ProfessorMapper {
         );
     }
 
-    public static ProfessorDetailResponse toDetail(Professor professor, List<CourseDto> courses) {
+    public static ProfessorDetailResponse toDetail(
+            Professor professor,
+            List<CourseDto> courses,
+            ProfessorCourseChangeRequestDto pendingCourseChangeRequest
+    ) {
         return new ProfessorDetailResponse(
             professor.getId(),
             professor.getUserId(),
@@ -35,6 +40,7 @@ public final class ProfessorMapper {
             professor.getMatricula(),
             professor.getStatus(),
             courses,
+            pendingCourseChangeRequest,
             professor.getCreatedAt()
         );
     }
