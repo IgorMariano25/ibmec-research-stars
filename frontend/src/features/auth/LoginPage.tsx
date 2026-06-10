@@ -14,7 +14,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSnackbar } from "notistack";
 import { useAuth } from "../../auth/AuthProvider";
 import { applyApiFieldErrors } from "../../utils/formHelpers";
@@ -44,16 +44,16 @@ export function LoginPage() {
     defaultValues: { email: "", password: "" },
   });
 
-  if (isAuthenticated && user) {
-    const target = user.role === "ADMIN" ? "/admin/dashboard" : "/me";
-    navigate(
-      (location.state as { from?: { pathname?: string } } | null)?.from
-        ?.pathname ?? target,
-      {
-        replace: true,
-      },
-    );
-  }
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const target = user.role === "ADMIN" ? "/admin/dashboard" : "/me";
+      navigate(
+        (location.state as { from?: { pathname?: string } } | null)?.from
+          ?.pathname ?? target,
+        { replace: true },
+      );
+    }
+  }, [isAuthenticated, user, navigate, location.state]);
 
   const onSubmit = async (values: FormValues) => {
     setServerError(null);

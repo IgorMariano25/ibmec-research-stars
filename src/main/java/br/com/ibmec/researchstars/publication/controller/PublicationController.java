@@ -52,8 +52,12 @@ public class PublicationController {
     // GET /publications/{id} — Admin / dono (RF-12)
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-    public ResponseEntity<PublicationResponse> findById(@PathVariable Long id) {
-        return ResponseEntity.ok(publicationService.findById(id));
+    public ResponseEntity<PublicationResponse> findById(
+            @PathVariable Long id,
+            @AuthenticationPrincipal AppUserDetails principal
+    ) {
+        boolean isAdmin = principal.getRole() == User.Role.ADMIN;
+        return ResponseEntity.ok(publicationService.findById(id, principal.getProfessorId(), isAdmin));
     }
 
     // POST /publications — Professor (RF-10, RF-11)

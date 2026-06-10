@@ -5,9 +5,6 @@ import br.com.ibmec.researchstars.ranking.dto.RankingEntryDto;
 import br.com.ibmec.researchstars.professor.Professor;
 import br.com.ibmec.researchstars.professor.ProfessorRepository;
 import br.com.ibmec.researchstars.publication.repository.PublicationRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,20 +26,8 @@ public class RankingService {
     }
 
     @Transactional(readOnly = true)
-    public Page<RankingEntryDto> getRanking(Pageable pageable) {
-        List<RankingEntryDto> allEntries = buildRankingEntries();
-
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), allEntries.size());
-
-        List<RankingEntryDto> pageContent;
-        if (start <= end && start < allEntries.size()) {
-            pageContent = allEntries.subList(start, end);
-        } else {
-            pageContent = new ArrayList<>();
-        }
-
-        return new PageImpl<>(pageContent, pageable, allEntries.size());
+    public List<RankingEntryDto> getRanking() {
+        return buildRankingEntries();
     }
 
     @Transactional(readOnly = true)
@@ -52,9 +37,9 @@ public class RankingService {
 
         List<RankingEntryDto> allEntries = buildRankingEntries();
 
-        for (int i = 0; i < allEntries.size(); i++) {
-            if (allEntries.get(i).getProfessorId().equals(professor.getId())) {
-                return new MyRankingResponseDto(i + 1, allEntries.get(i).getValidatedPublications());
+        for (RankingEntryDto entry : allEntries) {
+            if (entry.getProfessorId().equals(professor.getId())) {
+                return new MyRankingResponseDto(entry.getRank(), entry.getValidatedPublicationsLast3Years());
             }
         }
 
@@ -73,8 +58,12 @@ public class RankingService {
             entries.add(new RankingEntryDto(p.getId(), p.getName(), p.getLattesNumber(), count));
         }
 
-        entries.sort(Comparator.comparing(RankingEntryDto::getValidatedPublications).reversed()
+        entries.sort(Comparator.comparing(RankingEntryDto::getValidatedPublicationsLast3Years).reversed()
                 .thenComparing(RankingEntryDto::getName));
+
+        for (int i = 0; i < entries.size(); i++) {
+            entries.get(i).setRank(i + 1);
+        }
 
         return entries;
     }
