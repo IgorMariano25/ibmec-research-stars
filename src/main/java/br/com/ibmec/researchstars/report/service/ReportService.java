@@ -3,6 +3,7 @@ package br.com.ibmec.researchstars.report.service;
 import br.com.ibmec.researchstars.course.Course;
 import br.com.ibmec.researchstars.course.CourseRepository;
 import br.com.ibmec.researchstars.report.dto.CourseComplianceDto;
+import br.com.ibmec.researchstars.report.dto.ProfessorComplianceDto;
 import br.com.ibmec.researchstars.professor.Professor;
 import br.com.ibmec.researchstars.professor.ProfessorRepository;
 import br.com.ibmec.researchstars.publication.repository.PublicationRepository;
@@ -53,12 +54,15 @@ public class ReportService {
 
             long totalApproved = courseProfessors.size();
             long totalCompliant = 0;
+            List<ProfessorComplianceDto> professorCompliance = new ArrayList<>();
 
             for (Professor p : courseProfessors) {
                 long count = publicationRepository.countValidatedBetween(p.getId(), window.startDate(), window.endDate());
-                if (count >= MIN_PUBLICATIONS) {
+                boolean compliant = count >= MIN_PUBLICATIONS;
+                if (compliant) {
                     totalCompliant++;
                 }
+                professorCompliance.add(new ProfessorComplianceDto(p.getId(), p.getName(), count, compliant));
             }
 
             double percentage = 0.0;
@@ -72,7 +76,8 @@ public class ReportService {
                     course.getCode(),
                     totalApproved,
                     totalCompliant,
-                    percentage
+                    percentage,
+                    professorCompliance
             ));
         }
 

@@ -61,6 +61,7 @@ class ProfessorControllerTest {
             "https://lattes.cnpq.br/1111111111111111",
             "MAT-001",
             Professor.Status.PENDING,
+            List.of(new CourseDto(101L, "Engenharia de Software", "ES01")),
             null
         );
         when(service.list(Professor.Status.PENDING, "ada", 1, 5))
@@ -76,6 +77,7 @@ class ProfessorControllerTest {
             .andExpect(jsonPath("$.content[0].id").value(1))
             .andExpect(jsonPath("$.content[0].name").value("Ada Lovelace"))
             .andExpect(jsonPath("$.content[0].status").value("PENDING"))
+            .andExpect(jsonPath("$.content[0].courses[0].code").value("ES01"))
             .andExpect(jsonPath("$.page").value(1))
             .andExpect(jsonPath("$.size").value(5))
             .andExpect(jsonPath("$.totalElements").value(1))
