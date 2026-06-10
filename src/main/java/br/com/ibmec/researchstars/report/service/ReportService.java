@@ -9,7 +9,6 @@ import br.com.ibmec.researchstars.publication.repository.PublicationRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,11 +21,18 @@ public class ReportService {
     private final CourseRepository courseRepository;
     private final ProfessorRepository professorRepository;
     private final PublicationRepository publicationRepository;
+    private final ReportingWindowService reportingWindowService;
 
-    public ReportService(CourseRepository courseRepository, ProfessorRepository professorRepository, PublicationRepository publicationRepository) {
+    public ReportService(
+            CourseRepository courseRepository,
+            ProfessorRepository professorRepository,
+            PublicationRepository publicationRepository,
+            ReportingWindowService reportingWindowService
+    ) {
         this.courseRepository = courseRepository;
         this.professorRepository = professorRepository;
         this.publicationRepository = publicationRepository;
+        this.reportingWindowService = reportingWindowService;
     }
 
     @Transactional(readOnly = true)
@@ -36,7 +42,7 @@ public class ReportService {
                 .filter(p -> p.getStatus() == Professor.Status.APPROVED)
                 .collect(Collectors.toList());
 
-        LocalDate threeYearsAgo = LocalDate.now().minusYears(3);
+        var window = reportingWindowService.defaultWindow();
 
         List<CourseComplianceDto> reports = new ArrayList<>();
 
@@ -49,7 +55,7 @@ public class ReportService {
             long totalCompliant = 0;
 
             for (Professor p : courseProfessors) {
-                long count = publicationRepository.countValidatedSince(p.getId(), threeYearsAgo);
+                long count = publicationRepository.countValidatedBetween(p.getId(), window.startDate(), window.endDate());
                 if (count >= MIN_PUBLICATIONS) {
                     totalCompliant++;
                 }

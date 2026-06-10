@@ -47,7 +47,8 @@ export interface CourseCompliance {
   courseId: number;
   courseName: string;
   courseCode: string;
-  compliantProfessors: number;
+  compliantProfessors?: number;
+  totalCompliantProfessors?: number;
   totalApprovedProfessors: number;
   compliancePercentage: number;
 }

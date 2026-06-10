@@ -61,6 +61,14 @@ public class CourseComplianceDto {
         this.totalCompliantProfessors = totalCompliantProfessors;
     }
 
+    public long getCompliantProfessors() {
+        return totalCompliantProfessors;
+    }
+
+    public void setCompliantProfessors(long compliantProfessors) {
+        this.totalCompliantProfessors = compliantProfessors;
+    }
+
     public double getCompliancePercentage() {
         return compliancePercentage;
     }

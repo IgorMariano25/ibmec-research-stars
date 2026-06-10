@@ -41,6 +41,18 @@ public interface PublicationRepository extends JpaRepository<Publication, Long> 
             """)
     long countValidatedSince(@Param("professorId") Long professorId, @Param("since") LocalDate since);
 
+    @Query("""
+            SELECT COUNT(p) FROM Publication p
+            WHERE p.professorId = :professorId
+              AND p.status = 'VALIDATED'
+              AND p.publicationDate BETWEEN :startDate AND :endDate
+            """)
+    long countValidatedBetween(
+            @Param("professorId") Long professorId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
+
     // Admin: produção científica completa de um professor (RF-19)
     List<Publication> findAllByProfessorId(Long professorId);
 }
