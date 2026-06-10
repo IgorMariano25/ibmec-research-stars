@@ -1,6 +1,7 @@
 export type Role = 'ADMIN' | 'PROFESSOR';
 export type ProfessorStatus = 'PENDING' | 'APPROVED';
 export type PublicationStatus = 'PENDING' | 'VALIDATED' | 'REJECTED';
+export type ProfessorCourseChangeStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'SUPERSEDED';
 export type PublicationType =
   | 'JOURNAL_ARTICLE'
   | 'CONFERENCE_PAPER'
@@ -19,12 +20,26 @@ export interface Course {
 
 export interface Professor {
   id: number;
+  userId?: number;
   name: string;
   email: string;
   lattesUrl: string;
+  matricula?: string | null;
   status: ProfessorStatus;
   courses: Course[];
+  pendingCourseChangeRequest?: ProfessorCourseChangeRequest | null;
   createdAt: string;
+}
+
+export interface ProfessorCourseChangeRequest {
+  id: number;
+  professorId: number;
+  requestedCourses: Course[];
+  status: ProfessorCourseChangeStatus;
+  requestedByUserId: number;
+  reviewedByUserId?: number | null;
+  requestedAt?: string | null;
+  reviewedAt?: string | null;
 }
 
 export interface Publication {

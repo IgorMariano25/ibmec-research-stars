@@ -7,6 +7,8 @@ import br.com.ibmec.researchstars.course.Course;
 import br.com.ibmec.researchstars.course.CourseRepository;
 import br.com.ibmec.researchstars.professor.JwtService;
 import br.com.ibmec.researchstars.professor.Professor;
+import br.com.ibmec.researchstars.professor.ProfessorCourseChangeRequest;
+import br.com.ibmec.researchstars.professor.ProfessorCourseChangeRequestRepository;
 import br.com.ibmec.researchstars.professor.ProfessorRepository;
 import br.com.ibmec.researchstars.user.User;
 import br.com.ibmec.researchstars.user.UserRepository;
@@ -24,17 +26,20 @@ public class AuthService {
     private final UserRepository userRepository;
     private final ProfessorRepository professorRepository;
     private final CourseRepository courseRepository;
+    private final ProfessorCourseChangeRequestRepository courseChangeRequestRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
     public AuthService(UserRepository userRepository,
                        ProfessorRepository professorRepository,
                        CourseRepository courseRepository,
+                       ProfessorCourseChangeRequestRepository courseChangeRequestRepository,
                        PasswordEncoder passwordEncoder,
                        JwtService jwtService) {
         this.userRepository = userRepository;
         this.professorRepository = professorRepository;
         this.courseRepository = courseRepository;
+        this.courseChangeRequestRepository = courseChangeRequestRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
     }
@@ -67,8 +72,13 @@ public class AuthService {
         professor.setMatricula(request.matricula());
         professor.setUserId(user.getId());
         professor.setStatus(Professor.Status.PENDING);
-        professor.setCourseIds(courseIds);
         professorRepository.save(professor);
+
+        var courseChangeRequest = new ProfessorCourseChangeRequest();
+        courseChangeRequest.setProfessorId(professor.getId());
+        courseChangeRequest.setRequestedByUserId(user.getId());
+        courseChangeRequest.setRequestedCourseIds(courseIds);
+        courseChangeRequestRepository.save(courseChangeRequest);
 
         String token = jwtService.generateToken(user.getEmail());
         return new AuthResponse(token, user.getEmail(), professor.getName(),

@@ -1,26 +1,59 @@
 import {
   Alert,
   Box,
+  Button,
   Card,
   CardContent,
   Chip,
   Divider,
+  FormControl,
   Grid,
+  InputLabel,
+  MenuItem,
+  OutlinedInput,
+  Select,
   Stack,
   Typography,
 } from "@mui/material";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { useSnackbar } from "notistack";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { professorService } from "../../api/professorService";
+import { courseService } from "../../api/courseService";
 import { StatusChip } from "../../components/StatusChip";
 import { CenteredSpinner, ErrorState } from "../../components/States";
 import { formatDateTime } from "../../utils/formHelpers";
 import { getErrorMessage } from "../../api/httpClient";
 
 export function ProfessorProfilePage() {
+  const queryClient = useQueryClient();
+  const { enqueueSnackbar } = useSnackbar();
+  const [requestedCourseIds, setRequestedCourseIds] = useState<number[]>([]);
+
   const meQuery = useQuery({
     queryKey: ["professors", "me"],
     queryFn: professorService.getMe,
   });
+
+  const coursesQuery = useQuery({
+    queryKey: ["courses"],
+    queryFn: courseService.list,
+  });
+
+  const requestCourseChangeMutation = useMutation({
+    mutationFn: () => professorService.requestCourseChange(requestedCourseIds),
+    onSuccess: () => {
+      enqueueSnackbar("Solicitação de cursos enviada", { variant: "success" });
+      queryClient.invalidateQueries({ queryKey: ["professors", "me"] });
+    },
+    onError: (e) => enqueueSnackbar(getErrorMessage(e), { variant: "error" }),
+  });
+
+  useEffect(() => {
+    if (meQuery.data) {
+      setRequestedCourseIds(meQuery.data.courses.map((course) => course.id));
+    }
+  }, [meQuery.data]);
 
   if (meQuery.isLoading) return <CenteredSpinner />;
   if (meQuery.isError) {
@@ -36,6 +69,7 @@ export function ProfessorProfilePage() {
   }
 
   const me = meQuery.data!;
+  const pendingCourseChange = me.pendingCourseChangeRequest;
 
   return (
     <Stack spacing={3}>
@@ -97,6 +131,65 @@ export function ProfessorProfilePage() {
                     ))}
                   </Stack>
                 )}
+                {pendingCourseChange && (
+                  <Alert severity="info">
+                    Solicitação pendente:{" "}
+                    {pendingCourseChange.requestedCourses
+                      .map((course) => `${course.name} (${course.code})`)
+                      .join(", ")}
+                  </Alert>
+                )}
+                <FormControl fullWidth disabled={coursesQuery.isLoading}>
+                  <InputLabel id="requested-courses-label">
+                    Cursos solicitados
+                  </InputLabel>
+                  <Select
+                    labelId="requested-courses-label"
+                    multiple
+                    value={requestedCourseIds}
+                    input={<OutlinedInput label="Cursos solicitados" />}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      setRequestedCourseIds(
+                        typeof value === "string"
+                          ? value.split(",").map(Number)
+                          : value.map(Number),
+                      );
+                    }}
+                    renderValue={(selected) => {
+                      const selectedIds = selected as number[];
+                      return coursesQuery.data
+                        ?.filter((course) => selectedIds.includes(course.id))
+                        .map((course) => `${course.name} (${course.code})`)
+                        .join(", ");
+                    }}
+                  >
+                    {coursesQuery.data?.map((course) => (
+                      <MenuItem key={course.id} value={course.id}>
+                        {course.name} ({course.code})
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                {coursesQuery.isError && (
+                  <Alert severity="error">
+                    {getErrorMessage(
+                      coursesQuery.error,
+                      "Não foi possível carregar os cursos",
+                    )}
+                  </Alert>
+                )}
+                <Button
+                  variant="contained"
+                  onClick={() => requestCourseChangeMutation.mutate()}
+                  disabled={
+                    requestedCourseIds.length === 0 ||
+                    requestCourseChangeMutation.isPending ||
+                    Boolean(pendingCourseChange)
+                  }
+                >
+                  Solicitar alteração
+                </Button>
               </Stack>
             </CardContent>
           </Card>

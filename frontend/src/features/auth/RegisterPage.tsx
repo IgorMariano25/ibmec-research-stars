@@ -31,7 +31,10 @@ import { applyApiFieldErrors } from "../../utils/formHelpers";
 const schema = z.object({
   name: z.string().min(2, "Informe seu nome completo"),
   email: z.string().email("E-mail inválido"),
-  lattesUrl: z.string().url("Informe uma URL Lattes válida"),
+  lattesUrl: z
+    .string()
+    .url("Informe uma URL Lattes válida")
+    .regex(/^https?:\/\//, "Use uma URL começando com http:// ou https://"),
   password: z.string().min(6, "A senha deve ter ao menos 6 caracteres"),
   courseIds: z.array(z.number()).min(1, "Selecione ao menos um curso"),
 });

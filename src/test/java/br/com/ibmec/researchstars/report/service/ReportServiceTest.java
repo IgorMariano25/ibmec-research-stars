@@ -155,4 +155,28 @@ class ReportServiceTest {
         assertThat(compliance.getProfessorCompliance().get(1).getValidatedPublications()).isEqualTo(9L);
         assertThat(compliance.getProfessorCompliance().get(1).isCompliant()).isTrue();
     }
+
+    @Test
+    void getCourseComplianceCountsMultiCourseProfessorInEachApprovedCourse() {
+        var courseB = new Course("Data Science", "DS");
+        ReflectionTestUtils.setField(courseB, "id", 20L);
+        profA.setCourseIds(Set.of(10L, 20L));
+        when(courseRepository.findAll()).thenReturn(List.of(courseA, courseB));
+        when(professorRepository.findAll()).thenReturn(List.of(profA));
+        when(publicationRepository.countValidatedBetween(eq(100L), eq(reportingWindow.startDate()), eq(reportingWindow.endDate())))
+                .thenReturn(9L);
+
+        List<CourseComplianceDto> reports = reportService.getCourseCompliance();
+
+        assertThat(reports).hasSize(2);
+        assertThat(reports)
+                .extracting(CourseComplianceDto::getCourseCode)
+                .containsExactly("COMP", "DS");
+        assertThat(reports)
+                .extracting(CourseComplianceDto::getTotalApprovedProfessors)
+                .containsExactly(1L, 1L);
+        assertThat(reports)
+                .extracting(CourseComplianceDto::getCompliantProfessors)
+                .containsExactly(1L, 1L);
+    }
 }

@@ -16,6 +16,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import br.com.ibmec.researchstars.course.dto.CourseDto;
 import br.com.ibmec.researchstars.professor.dto.PagedResponse;
 import br.com.ibmec.researchstars.professor.dto.ProfessorApproveResponse;
+import br.com.ibmec.researchstars.professor.dto.ProfessorCourseChangeRequestDto;
+import br.com.ibmec.researchstars.professor.dto.ProfessorCourseChangeRequestPayload;
 import br.com.ibmec.researchstars.professor.dto.ProfessorDetailResponse;
 import br.com.ibmec.researchstars.professor.dto.ProfessorListItemResponse;
 import br.com.ibmec.researchstars.professor.dto.ProfessorPublicationsResponse;
@@ -86,14 +88,16 @@ class ProfessorControllerTest {
 
     @Test
     void getByIdReturnsProfessorDetails() throws Exception {
-        when(service.findById(1L)).thenReturn(detailResponse());
+        when(service.findById(1L)).thenReturn(detailResponseWithPendingCourseChange());
 
         mockMvc.perform(get("/api/v1/professors/1"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").value(1))
             .andExpect(jsonPath("$.userId").value(10))
             .andExpect(jsonPath("$.name").value("Ada Lovelace"))
-            .andExpect(jsonPath("$.courses", hasSize(2)));
+            .andExpect(jsonPath("$.courses", hasSize(2)))
+            .andExpect(jsonPath("$.pendingCourseChangeRequest.status").value("PENDING"))
+            .andExpect(jsonPath("$.pendingCourseChangeRequest.requestedCourses", hasSize(1)));
     }
 
     @Test
@@ -134,6 +138,48 @@ class ProfessorControllerTest {
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.status").value(400))
             .andExpect(jsonPath("$.message").value("Professor is already approved"));
+    }
+
+    @Test
+    void requestMyCourseChangeReturnsUpdatedProfessorDetails() throws Exception {
+        when(service.requestMyCourseChange(any(ProfessorCourseChangeRequestPayload.class)))
+            .thenReturn(detailResponseWithPendingCourseChange());
+
+        mockMvc.perform(post("/api/v1/professors/me/course-change-request")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "courseIds": [102]
+                    }
+                    """))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(1))
+            .andExpect(jsonPath("$.pendingCourseChangeRequest.status").value("PENDING"))
+            .andExpect(jsonPath("$.pendingCourseChangeRequest.requestedCourses[0].id").value(102));
+
+        verify(service).requestMyCourseChange(any(ProfessorCourseChangeRequestPayload.class));
+    }
+
+    @Test
+    void approveCourseChangeReturnsUpdatedProfessorDetails() throws Exception {
+        when(service.approveCourseChange(1L)).thenReturn(detailResponse());
+
+        mockMvc.perform(post("/api/v1/professors/1/course-change-request/approve"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(1));
+
+        verify(service).approveCourseChange(1L);
+    }
+
+    @Test
+    void rejectCourseChangeReturnsUpdatedProfessorDetails() throws Exception {
+        when(service.rejectCourseChange(1L)).thenReturn(detailResponse());
+
+        mockMvc.perform(post("/api/v1/professors/1/course-change-request/reject"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(1));
+
+        verify(service).rejectCourseChange(1L);
     }
 
     @Test
@@ -233,6 +279,34 @@ class ProfessorControllerTest {
             List.of(
                 new CourseDto(101L, "Computer Science", "CS"),
                 new CourseDto(102L, "Data Science", "DS")
+            ),
+            null,
+            null
+        );
+    }
+
+    private ProfessorDetailResponse detailResponseWithPendingCourseChange() {
+        return new ProfessorDetailResponse(
+            1L,
+            10L,
+            "Ada Lovelace",
+            "ada@ibmec.br",
+            "https://lattes.cnpq.br/1111111111111111",
+            "MAT-001",
+            Professor.Status.APPROVED,
+            List.of(
+                new CourseDto(101L, "Computer Science", "CS"),
+                new CourseDto(102L, "Data Science", "DS")
+            ),
+            new ProfessorCourseChangeRequestDto(
+                50L,
+                1L,
+                List.of(new CourseDto(102L, "Data Science", "DS")),
+                ProfessorCourseChangeRequest.Status.PENDING,
+                10L,
+                null,
+                null,
+                null
             ),
             null
         );

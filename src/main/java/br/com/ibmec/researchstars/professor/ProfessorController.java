@@ -2,6 +2,7 @@ package br.com.ibmec.researchstars.professor;
 
 import br.com.ibmec.researchstars.professor.dto.PagedResponse;
 import br.com.ibmec.researchstars.professor.dto.ProfessorApproveResponse;
+import br.com.ibmec.researchstars.professor.dto.ProfessorCourseChangeRequestPayload;
 import br.com.ibmec.researchstars.professor.dto.ProfessorDetailResponse;
 import br.com.ibmec.researchstars.professor.dto.ProfessorListItemResponse;
 import br.com.ibmec.researchstars.professor.dto.ProfessorPublicationsResponse;
@@ -57,6 +58,26 @@ public class ProfessorController {
     @PreAuthorize("hasRole('ADMIN')")
     public ProfessorApproveResponse approve(@PathVariable Long id) {
         return service.approve(id);
+    }
+
+    @PostMapping("/me/course-change-request")
+    @PreAuthorize("hasRole('PROFESSOR')")
+    public ProfessorDetailResponse requestMyCourseChange(
+        @Valid @RequestBody ProfessorCourseChangeRequestPayload request
+    ) {
+        return service.requestMyCourseChange(request);
+    }
+
+    @PostMapping("/{id}/course-change-request/approve")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ProfessorDetailResponse approveCourseChange(@PathVariable Long id) {
+        return service.approveCourseChange(id);
+    }
+
+    @PostMapping("/{id}/course-change-request/reject")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ProfessorDetailResponse rejectCourseChange(@PathVariable Long id) {
+        return service.rejectCourseChange(id);
     }
 
     @PatchMapping("/{id}")

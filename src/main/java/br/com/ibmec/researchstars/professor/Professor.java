@@ -128,7 +128,7 @@ public class Professor {
     }
 
     public void setCourseIds(Set<Long> courseIds) {
-        this.courseIds = courseIds;
+        this.courseIds = new HashSet<>(courseIds);
     }
 
     public LocalDateTime getCreatedAt() {

@@ -14,6 +14,7 @@ import br.com.ibmec.researchstars.ranking.dto.RankingEntryDto;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -86,5 +87,19 @@ class RankingServiceTest {
         // Assert
         assertThat(myRanking.getRank()).isEqualTo(2);
         assertThat(myRanking.getValidatedPublicationsLast3Years()).isEqualTo(5L);
+    }
+
+    @Test
+    void getRankingDoesNotDuplicateProfessorWithMultipleCourses() {
+        profA.setCourseIds(Set.of(10L, 20L));
+        when(professorRepository.findAll()).thenReturn(List.of(profA));
+        when(publicationRepository.countValidatedBetween(eq(100L), eq(reportingWindow.startDate()), eq(reportingWindow.endDate())))
+                .thenReturn(9L);
+
+        List<RankingEntryDto> result = rankingService.getRanking();
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getProfessorId()).isEqualTo(100L);
+        assertThat(result.get(0).getValidatedPublicationsLast3Years()).isEqualTo(9L);
     }
 }

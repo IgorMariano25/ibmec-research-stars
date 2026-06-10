@@ -1,13 +1,19 @@
 import {
+  Alert,
   Box,
   Button,
   Card,
   CardContent,
   Chip,
   Divider,
+  FormControl,
   Grid,
+  InputLabel,
   Link,
+  MenuItem,
+  OutlinedInput,
   Paper,
+  Select,
   Stack,
   Table,
   TableBody,
@@ -23,9 +29,10 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSnackbar } from "notistack";
 import { professorService } from "../../api/professorService";
+import { courseService } from "../../api/courseService";
 import {
   CenteredSpinner,
   EmptyState,
@@ -45,11 +52,17 @@ export function AdminProfessorDetailPage() {
   const { enqueueSnackbar } = useSnackbar();
   const [approveOpen, setApproveOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [courseIds, setCourseIds] = useState<number[]>([]);
 
   const professorQuery = useQuery({
     queryKey: ["professors", professorId],
     queryFn: () => professorService.getById(professorId),
     enabled: !Number.isNaN(professorId),
+  });
+
+  const coursesQuery = useQuery({
+    queryKey: ["courses"],
+    queryFn: courseService.list,
   });
 
   const publicationsQuery = useQuery({
@@ -58,11 +71,53 @@ export function AdminProfessorDetailPage() {
     enabled: !Number.isNaN(professorId),
   });
 
+  const invalidateProfessorData = () => {
+    queryClient.invalidateQueries({ queryKey: ["professors"] });
+    queryClient.invalidateQueries({ queryKey: ["professors", professorId] });
+    queryClient.invalidateQueries({ queryKey: ["reports"] });
+  };
+
   const approveMutation = useMutation({
     mutationFn: () => professorService.approve(professorId),
     onSuccess: () => {
       enqueueSnackbar("Professor aprovado", { variant: "success" });
-      queryClient.invalidateQueries({ queryKey: ["professors"] });
+      invalidateProfessorData();
+    },
+    onError: (e) => enqueueSnackbar(getErrorMessage(e), { variant: "error" }),
+  });
+
+  const updateCoursesMutation = useMutation({
+    mutationFn: () => {
+      const professor = professorQuery.data!;
+      return professorService.update(professorId, {
+        name: professor.name,
+        email: professor.email,
+        matricula: professor.matricula,
+        lattesUrl: professor.lattesUrl,
+        courseIds,
+      });
+    },
+    onSuccess: () => {
+      enqueueSnackbar("Cursos atualizados", { variant: "success" });
+      invalidateProfessorData();
+    },
+    onError: (e) => enqueueSnackbar(getErrorMessage(e), { variant: "error" }),
+  });
+
+  const approveCourseChangeMutation = useMutation({
+    mutationFn: () => professorService.approveCourseChange(professorId),
+    onSuccess: () => {
+      enqueueSnackbar("Solicitação de cursos aprovada", { variant: "success" });
+      invalidateProfessorData();
+    },
+    onError: (e) => enqueueSnackbar(getErrorMessage(e), { variant: "error" }),
+  });
+
+  const rejectCourseChangeMutation = useMutation({
+    mutationFn: () => professorService.rejectCourseChange(professorId),
+    onSuccess: () => {
+      enqueueSnackbar("Solicitação de cursos rejeitada", { variant: "success" });
+      invalidateProfessorData();
     },
     onError: (e) => enqueueSnackbar(getErrorMessage(e), { variant: "error" }),
   });
@@ -76,6 +131,12 @@ export function AdminProfessorDetailPage() {
     },
     onError: (e) => enqueueSnackbar(getErrorMessage(e), { variant: "error" }),
   });
+
+  useEffect(() => {
+    if (professorQuery.data) {
+      setCourseIds(professorQuery.data.courses.map((course) => course.id));
+    }
+  }, [professorQuery.data]);
 
   if (professorQuery.isLoading) return <CenteredSpinner />;
   if (professorQuery.isError) {
@@ -91,6 +152,7 @@ export function AdminProfessorDetailPage() {
   }
 
   const p = professorQuery.data!;
+  const pendingCourseChange = p.pendingCourseChangeRequest;
 
   return (
     <Stack spacing={3}>
@@ -165,6 +227,83 @@ export function AdminProfessorDetailPage() {
                     ))}
                   </Stack>
                 )}
+                {pendingCourseChange && (
+                  <Alert
+                    severity="info"
+                    action={
+                      <Stack direction="row" spacing={1}>
+                        <Button
+                          color="inherit"
+                          size="small"
+                          onClick={() => approveCourseChangeMutation.mutate()}
+                          disabled={approveCourseChangeMutation.isPending}
+                        >
+                          Aprovar
+                        </Button>
+                        <Button
+                          color="inherit"
+                          size="small"
+                          onClick={() => rejectCourseChangeMutation.mutate()}
+                          disabled={rejectCourseChangeMutation.isPending}
+                        >
+                          Rejeitar
+                        </Button>
+                      </Stack>
+                    }
+                  >
+                    Solicitação pendente:{" "}
+                    {pendingCourseChange.requestedCourses
+                      .map((course) => `${course.name} (${course.code})`)
+                      .join(", ")}
+                  </Alert>
+                )}
+                <FormControl fullWidth disabled={coursesQuery.isLoading}>
+                  <InputLabel id="admin-professor-courses-label">
+                    Cursos atuais
+                  </InputLabel>
+                  <Select
+                    labelId="admin-professor-courses-label"
+                    multiple
+                    value={courseIds}
+                    input={<OutlinedInput label="Cursos atuais" />}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      setCourseIds(
+                        typeof value === "string"
+                          ? value.split(",").map(Number)
+                          : value.map(Number),
+                      );
+                    }}
+                    renderValue={(selected) => {
+                      const selectedIds = selected as number[];
+                      return coursesQuery.data
+                        ?.filter((course) => selectedIds.includes(course.id))
+                        .map((course) => `${course.name} (${course.code})`)
+                        .join(", ");
+                    }}
+                  >
+                    {coursesQuery.data?.map((course) => (
+                      <MenuItem key={course.id} value={course.id}>
+                        {course.name} ({course.code})
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                {coursesQuery.isError && (
+                  <Alert severity="error">
+                    {getErrorMessage(
+                      coursesQuery.error,
+                      "Não foi possível carregar os cursos",
+                    )}
+                  </Alert>
+                )}
+                <Button
+                  variant="contained"
+                  onClick={() => updateCoursesMutation.mutate()}
+                  disabled={courseIds.length === 0 || updateCoursesMutation.isPending}
+                >
+                  Salvar cursos
+                </Button>
               </Stack>
             </CardContent>
           </Card>

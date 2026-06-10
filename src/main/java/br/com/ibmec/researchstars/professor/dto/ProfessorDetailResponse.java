@@ -15,5 +15,6 @@ public record ProfessorDetailResponse(
     String matricula,
     Professor.Status status,
     List<CourseDto> courses,
+    ProfessorCourseChangeRequestDto pendingCourseChangeRequest,
     LocalDateTime createdAt
 ) {}
