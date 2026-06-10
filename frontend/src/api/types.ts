@@ -54,6 +54,13 @@ export interface MyRanking {
   validatedPublicationsLast3Years: number;
 }
 
+export interface ProfessorCompliance {
+  professorId: number;
+  professorName: string;
+  validatedPublications: number;
+  compliant: boolean;
+}
+
 export interface CourseCompliance {
   courseId: number;
   courseName: string;
@@ -62,6 +69,7 @@ export interface CourseCompliance {
   totalCompliantProfessors?: number;
   totalApprovedProfessors: number;
   compliancePercentage: number;
+  professorCompliance?: ProfessorCompliance[];
 }
 
 export interface RegisterRequest {

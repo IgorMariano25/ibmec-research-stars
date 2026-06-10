@@ -12,7 +12,7 @@ public final class ProfessorMapper {
 
     private ProfessorMapper() {}
 
-    public static ProfessorListItemResponse toListItem(Professor professor) {
+    public static ProfessorListItemResponse toListItem(Professor professor, List<CourseDto> courses) {
         return new ProfessorListItemResponse(
             professor.getId(),
             professor.getName(),
@@ -20,6 +20,7 @@ public final class ProfessorMapper {
             professor.getLattesUrl(),
             professor.getMatricula(),
             professor.getStatus(),
+            courses,
             professor.getCreatedAt()
         );
     }

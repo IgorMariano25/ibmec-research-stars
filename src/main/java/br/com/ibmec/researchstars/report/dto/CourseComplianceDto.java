@@ -1,5 +1,8 @@
 package br.com.ibmec.researchstars.report.dto;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class CourseComplianceDto {
 
     private Long courseId;
@@ -8,6 +11,7 @@ public class CourseComplianceDto {
     private long totalApprovedProfessors;
     private long totalCompliantProfessors;
     private double compliancePercentage;
+    private List<ProfessorComplianceDto> professorCompliance = new ArrayList<>();
 
     public CourseComplianceDto() {
     }
@@ -19,6 +23,19 @@ public class CourseComplianceDto {
         this.totalApprovedProfessors = totalApprovedProfessors;
         this.totalCompliantProfessors = totalCompliantProfessors;
         this.compliancePercentage = compliancePercentage;
+    }
+
+    public CourseComplianceDto(
+            Long courseId,
+            String courseName,
+            String courseCode,
+            long totalApprovedProfessors,
+            long totalCompliantProfessors,
+            double compliancePercentage,
+            List<ProfessorComplianceDto> professorCompliance
+    ) {
+        this(courseId, courseName, courseCode, totalApprovedProfessors, totalCompliantProfessors, compliancePercentage);
+        this.professorCompliance = professorCompliance;
     }
 
     public Long getCourseId() {
@@ -75,5 +92,13 @@ public class CourseComplianceDto {
 
     public void setCompliancePercentage(double compliancePercentage) {
         this.compliancePercentage = compliancePercentage;
+    }
+
+    public List<ProfessorComplianceDto> getProfessorCompliance() {
+        return professorCompliance;
+    }
+
+    public void setProfessorCompliance(List<ProfessorComplianceDto> professorCompliance) {
+        this.professorCompliance = professorCompliance;
     }
 }

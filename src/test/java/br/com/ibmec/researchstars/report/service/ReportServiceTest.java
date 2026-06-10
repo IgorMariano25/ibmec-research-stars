@@ -116,6 +116,9 @@ class ReportServiceTest {
 
         assertThat(compliance.getTotalApprovedProfessors()).isEqualTo(1L);
         assertThat(compliance.getCompliantProfessors()).isEqualTo(1L);
+        assertThat(compliance.getProfessorCompliance())
+                .extracting("professorId")
+                .containsExactly(100L);
         verify(publicationRepository, never()).countValidatedBetween(eq(200L), eq(reportingWindow.startDate()), eq(reportingWindow.endDate()));
     }
 
@@ -131,5 +134,25 @@ class ReportServiceTest {
         assertThat(compliance.getTotalApprovedProfessors()).isEqualTo(2L);
         assertThat(compliance.getCompliantProfessors()).isEqualTo(1L);
         assertThat(compliance.getCompliancePercentage()).isEqualTo(50.0);
+    }
+
+    @Test
+    void getCourseComplianceIncludesApprovedProfessorPublicationCounts() {
+        when(courseRepository.findAll()).thenReturn(List.of(courseA));
+        when(professorRepository.findAll()).thenReturn(List.of(profA, profB));
+        when(publicationRepository.countValidatedBetween(eq(100L), eq(reportingWindow.startDate()), eq(reportingWindow.endDate()))).thenReturn(3L);
+        when(publicationRepository.countValidatedBetween(eq(200L), eq(reportingWindow.startDate()), eq(reportingWindow.endDate()))).thenReturn(9L);
+
+        CourseComplianceDto compliance = reportService.getCourseCompliance().get(0);
+
+        assertThat(compliance.getProfessorCompliance()).hasSize(2);
+        assertThat(compliance.getProfessorCompliance().get(0).getProfessorId()).isEqualTo(100L);
+        assertThat(compliance.getProfessorCompliance().get(0).getProfessorName()).isEqualTo("Alice");
+        assertThat(compliance.getProfessorCompliance().get(0).getValidatedPublications()).isEqualTo(3L);
+        assertThat(compliance.getProfessorCompliance().get(0).isCompliant()).isFalse();
+        assertThat(compliance.getProfessorCompliance().get(1).getProfessorId()).isEqualTo(200L);
+        assertThat(compliance.getProfessorCompliance().get(1).getProfessorName()).isEqualTo("Bob");
+        assertThat(compliance.getProfessorCompliance().get(1).getValidatedPublications()).isEqualTo(9L);
+        assertThat(compliance.getProfessorCompliance().get(1).isCompliant()).isTrue();
     }
 }

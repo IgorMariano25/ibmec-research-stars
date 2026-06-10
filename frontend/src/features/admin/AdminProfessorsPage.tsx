@@ -78,8 +78,10 @@ export function AdminProfessorsPage() {
         flex: 1,
         minWidth: 180,
         sortable: false,
-        valueGetter: (_v, row) =>
-          (row.courses ?? []).map((c: { code: string }) => c.code).join(', '),
+        valueGetter: (_v, row) => {
+          const courseCodes = (row.courses ?? []).map((c: { code: string }) => c.code);
+          return courseCodes.length > 0 ? courseCodes.join(', ') : '-';
+        },
       },
       {
         field: 'status',

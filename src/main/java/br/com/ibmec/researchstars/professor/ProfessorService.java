@@ -22,6 +22,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class ProfessorService {
@@ -48,9 +52,12 @@ public class ProfessorService {
 
     public PagedResponse<ProfessorListItemResponse> list(Professor.Status status, String q, int page, int size) {
         var pageable = PageRequest.of(page, size, Sort.by("id").ascending());
-        var result = repository.findAll(ProfessorSpecifications.byFilters(status, q), pageable)
-                .map(ProfessorMapper::toListItem);
-        return new PagedResponse<>(result.getContent(), result.getNumber(), result.getSize(),
+        var result = repository.findAll(ProfessorSpecifications.byFilters(status, q), pageable);
+        var coursesById = loadCoursesById(result.getContent());
+        var content = result.getContent().stream()
+                .map(professor -> ProfessorMapper.toListItem(professor, mapCourses(professor, coursesById)))
+                .toList();
+        return new PagedResponse<>(content, result.getNumber(), result.getSize(),
                 result.getTotalElements(), result.getTotalPages());
     }
 
@@ -118,6 +125,25 @@ public class ProfessorService {
                 .map(c -> new CourseDto(c.getId(), c.getName(), c.getCode()))
                 .toList();
         return ProfessorMapper.toDetail(professor, courses);
+    }
+
+    private Map<Long, CourseDto> loadCoursesById(List<Professor> professors) {
+        Set<Long> courseIds = professors.stream()
+                .flatMap(professor -> professor.getCourseIds().stream())
+                .collect(Collectors.toSet());
+        if (courseIds.isEmpty()) {
+            return Map.of();
+        }
+        return courseRepository.findAllById(courseIds).stream()
+                .map(course -> new CourseDto(course.getId(), course.getName(), course.getCode()))
+                .collect(Collectors.toMap(CourseDto::id, Function.identity()));
+    }
+
+    private List<CourseDto> mapCourses(Professor professor, Map<Long, CourseDto> coursesById) {
+        return professor.getCourseIds().stream()
+                .map(coursesById::get)
+                .filter(java.util.Objects::nonNull)
+                .toList();
     }
 
     private Professor getProfessorOrThrow(Long id) {

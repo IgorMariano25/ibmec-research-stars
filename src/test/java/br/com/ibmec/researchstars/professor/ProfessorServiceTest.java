@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import br.com.ibmec.researchstars.course.Course;
 import br.com.ibmec.researchstars.professor.dto.ProfessorUpdateRequest;
 import br.com.ibmec.researchstars.professor.exception.ProfessorConflictException;
 import br.com.ibmec.researchstars.professor.exception.ProfessorIntegrationException;
@@ -66,6 +67,36 @@ class ProfessorServiceTest {
         assertThat(result.content()).hasSize(1);
         assertThat(result.content().get(0).id()).isEqualTo(1L);
         assertThat(result.content().get(0).name()).isEqualTo("Ada Lovelace");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void listReturnsCoursesForEachProfessor() {
+        var professor = buildProfessor(1L, Professor.Status.APPROVED);
+        var softwareEngineering = buildCourse(101L, "Engenharia de Software", "ES01");
+        var dataScience = buildCourse(102L, "CDIA", "CDIA01");
+        when(repository.findAll(any(Specification.class), any(PageRequest.class)))
+            .thenReturn(new PageImpl<>(List.of(professor)));
+        when(courseRepository.findAllById(Set.of(101L, 102L))).thenReturn(List.of(softwareEngineering, dataScience));
+
+        var result = service.list(null, null, 0, 10);
+
+        assertThat(result.content().get(0).courses())
+            .extracting("code")
+            .containsExactlyInAnyOrder("ES01", "CDIA01");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void listReturnsEmptyCourseListWhenProfessorHasNoCourses() {
+        var professor = buildProfessor(1L, Professor.Status.APPROVED);
+        professor.setCourseIds(Set.of());
+        when(repository.findAll(any(Specification.class), any(PageRequest.class)))
+            .thenReturn(new PageImpl<>(List.of(professor)));
+
+        var result = service.list(null, null, 0, 10);
+
+        assertThat(result.content().get(0).courses()).isEmpty();
     }
 
     // ── findById ──────────────────────────────────────────────────────────────
@@ -264,6 +295,12 @@ class ProfessorServiceTest {
         professor.setStatus(status);
         professor.setCourseIds(Set.of(101L, 102L));
         return professor;
+    }
+
+    private Course buildCourse(Long id, String name, String code) {
+        var course = new Course(name, code);
+        setField(course, "id", id);
+        return course;
     }
 
     private void setField(Object target, String fieldName, Object value) {
