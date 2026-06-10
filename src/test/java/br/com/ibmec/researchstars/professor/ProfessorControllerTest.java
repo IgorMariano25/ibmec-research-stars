@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import br.com.ibmec.researchstars.course.dto.CourseDto;
 import br.com.ibmec.researchstars.professor.dto.PagedResponse;
 import br.com.ibmec.researchstars.professor.dto.ProfessorApproveResponse;
 import br.com.ibmec.researchstars.professor.dto.ProfessorDetailResponse;
@@ -90,7 +91,7 @@ class ProfessorControllerTest {
             .andExpect(jsonPath("$.id").value(1))
             .andExpect(jsonPath("$.userId").value(10))
             .andExpect(jsonPath("$.name").value("Ada Lovelace"))
-            .andExpect(jsonPath("$.courseIds", hasSize(2)));
+            .andExpect(jsonPath("$.courses", hasSize(2)));
     }
 
     @Test
@@ -227,7 +228,10 @@ class ProfessorControllerTest {
             "LAT-001",
             "MAT-001",
             Professor.Status.APPROVED,
-            List.of(),
+            List.of(
+                new CourseDto(101L, "Computer Science", "CS"),
+                new CourseDto(102L, "Data Science", "DS")
+            ),
             null
         );
     }

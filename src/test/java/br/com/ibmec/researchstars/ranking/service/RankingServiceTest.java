@@ -19,8 +19,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -59,14 +57,14 @@ class RankingServiceTest {
         when(publicationRepository.countValidatedSince(eq(200L), any(LocalDate.class))).thenReturn(10L);
 
         // Act
-        Page<RankingEntryDto> result = rankingService.getRanking(PageRequest.of(0, 10));
+        List<RankingEntryDto> result = rankingService.getRanking();
 
         // Assert
-        assertThat(result.getContent()).hasSize(2);
-        assertThat(result.getContent().get(0).getName()).isEqualTo("Bob");
-        assertThat(result.getContent().get(0).getValidatedPublications()).isEqualTo(10L);
-        assertThat(result.getContent().get(1).getName()).isEqualTo("Alice");
-        assertThat(result.getContent().get(1).getValidatedPublications()).isEqualTo(5L);
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).getName()).isEqualTo("Bob");
+        assertThat(result.get(0).getValidatedPublicationsLast3Years()).isEqualTo(10L);
+        assertThat(result.get(1).getName()).isEqualTo("Alice");
+        assertThat(result.get(1).getValidatedPublicationsLast3Years()).isEqualTo(5L);
     }
 
     @Test
@@ -81,7 +79,7 @@ class RankingServiceTest {
         MyRankingResponseDto myRanking = rankingService.getMyRanking(100L);
 
         // Assert
-        assertThat(myRanking.getPosition()).isEqualTo(2);
-        assertThat(myRanking.getValidatedPublications()).isEqualTo(5L);
+        assertThat(myRanking.getRank()).isEqualTo(2);
+        assertThat(myRanking.getValidatedPublicationsLast3Years()).isEqualTo(5L);
     }
 }
