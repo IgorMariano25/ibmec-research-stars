@@ -19,7 +19,7 @@ public final class ProfessorSpecifications {
                 var pattern = "%" + q.toLowerCase() + "%";
                 var byName = cb.like(cb.lower(root.get("name")), pattern);
                 var byEmail = cb.like(cb.lower(root.get("email")), pattern);
-                var byLattes = cb.like(cb.lower(root.get("lattesNumber")), pattern);
+                var byLattes = cb.like(cb.lower(root.get("lattesUrl")), pattern);
                 predicate = cb.and(predicate, cb.or(byName, byEmail, byLattes));
             }
 

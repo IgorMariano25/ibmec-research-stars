@@ -5,16 +5,16 @@ public class RankingEntryDto {
     private int rank;
     private Long professorId;
     private String name;
-    private String lattesNumber;
+    private String lattesUrl;
     private long validatedPublicationsLast3Years;
 
     public RankingEntryDto() {
     }
 
-    public RankingEntryDto(Long professorId, String name, String lattesNumber, long validatedPublicationsLast3Years) {
+    public RankingEntryDto(Long professorId, String name, String lattesUrl, long validatedPublicationsLast3Years) {
         this.professorId = professorId;
         this.name = name;
-        this.lattesNumber = lattesNumber;
+        this.lattesUrl = lattesUrl;
         this.validatedPublicationsLast3Years = validatedPublicationsLast3Years;
     }
 
@@ -42,12 +42,12 @@ public class RankingEntryDto {
         this.name = name;
     }
 
-    public String getLattesNumber() {
-        return lattesNumber;
+    public String getLattesUrl() {
+        return lattesUrl;
     }
 
-    public void setLattesNumber(String lattesNumber) {
-        this.lattesNumber = lattesNumber;
+    public void setLattesUrl(String lattesUrl) {
+        this.lattesUrl = lattesUrl;
     }
 
     public long getValidatedPublicationsLast3Years() {

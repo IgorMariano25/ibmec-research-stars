@@ -17,7 +17,7 @@ public final class ProfessorMapper {
             professor.getId(),
             professor.getName(),
             professor.getEmail(),
-            professor.getLattesNumber(),
+            professor.getLattesUrl(),
             professor.getMatricula(),
             professor.getStatus(),
             professor.getCreatedAt()
@@ -30,7 +30,7 @@ public final class ProfessorMapper {
             professor.getUserId(),
             professor.getName(),
             professor.getEmail(),
-            professor.getLattesNumber(),
+            professor.getLattesUrl(),
             professor.getMatricula(),
             professor.getStatus(),
             courses,

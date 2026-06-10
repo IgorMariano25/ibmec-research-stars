@@ -11,7 +11,7 @@ public record ProfessorDetailResponse(
     Long userId,
     String name,
     String email,
-    String lattesNumber,
+    String lattesUrl,
     String matricula,
     Professor.Status status,
     List<CourseDto> courses,

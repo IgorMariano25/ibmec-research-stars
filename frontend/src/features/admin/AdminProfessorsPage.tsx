@@ -71,7 +71,7 @@ export function AdminProfessorsPage() {
     () => [
       { field: 'name', headerName: 'Nome', flex: 1.2, minWidth: 180 },
       { field: 'email', headerName: 'E-mail', flex: 1.2, minWidth: 200 },
-      { field: 'lattesNumber', headerName: 'Lattes', minWidth: 140 },
+      { field: 'lattesUrl', headerName: 'Lattes URL', minWidth: 220 },
       {
         field: 'courses',
         headerName: 'Cursos',

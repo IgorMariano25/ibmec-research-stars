@@ -147,11 +147,17 @@ class ProfessorServiceTest {
     @Test
     void updateSavesProfessorWithNewValues() {
         var professor = buildProfessor(1L, Professor.Status.APPROVED);
-        var request = new ProfessorUpdateRequest("New Name", "new@ibmec.br", "MAT-002", "LAT-002", Set.of(101L));
+        var request = new ProfessorUpdateRequest(
+            "New Name",
+            "new@ibmec.br",
+            "MAT-002",
+            "https://lattes.cnpq.br/2222222222222222",
+            Set.of(101L)
+        );
 
         when(repository.findById(1L)).thenReturn(Optional.of(professor));
         when(repository.existsByEmailAndIdNot("new@ibmec.br", 1L)).thenReturn(false);
-        when(repository.existsByLattesNumberAndIdNot("LAT-002", 1L)).thenReturn(false);
+        when(repository.existsByLattesUrlAndIdNot("https://lattes.cnpq.br/2222222222222222", 1L)).thenReturn(false);
         when(courseGateway.keepOnlyExistingCourseIds(Set.of(101L))).thenReturn(Set.of(101L));
         when(repository.save(professor)).thenReturn(professor);
 
@@ -165,7 +171,13 @@ class ProfessorServiceTest {
     @Test
     void updateThrowsConflictWhenEmailIsAlreadyInUse() {
         var professor = buildProfessor(1L, Professor.Status.APPROVED);
-        var request = new ProfessorUpdateRequest("Ada", "taken@ibmec.br", null, "LAT-001", Set.of());
+        var request = new ProfessorUpdateRequest(
+            "Ada",
+            "taken@ibmec.br",
+            null,
+            "https://lattes.cnpq.br/1111111111111111",
+            Set.of()
+        );
 
         when(repository.findById(1L)).thenReturn(Optional.of(professor));
         when(repository.existsByEmailAndIdNot("taken@ibmec.br", 1L)).thenReturn(true);
@@ -176,13 +188,19 @@ class ProfessorServiceTest {
     }
 
     @Test
-    void updateThrowsConflictWhenLattesNumberIsAlreadyInUse() {
+    void updateThrowsConflictWhenLattesUrlIsAlreadyInUse() {
         var professor = buildProfessor(1L, Professor.Status.APPROVED);
-        var request = new ProfessorUpdateRequest("Ada", "ada@ibmec.br", null, "LAT-TAKEN", Set.of());
+        var request = new ProfessorUpdateRequest(
+            "Ada",
+            "ada@ibmec.br",
+            null,
+            "https://lattes.cnpq.br/taken",
+            Set.of()
+        );
 
         when(repository.findById(1L)).thenReturn(Optional.of(professor));
         when(repository.existsByEmailAndIdNot("ada@ibmec.br", 1L)).thenReturn(false);
-        when(repository.existsByLattesNumberAndIdNot("LAT-TAKEN", 1L)).thenReturn(true);
+        when(repository.existsByLattesUrlAndIdNot("https://lattes.cnpq.br/taken", 1L)).thenReturn(true);
 
         assertThatThrownBy(() -> service.update(1L, request))
             .isInstanceOf(ProfessorConflictException.class)
@@ -242,7 +260,7 @@ class ProfessorServiceTest {
         professor.setName("Ada Lovelace");
         professor.setEmail("ada@ibmec.br");
         professor.setMatricula("MAT-001");
-        professor.setLattesNumber("LAT-001");
+        professor.setLattesUrl("https://lattes.cnpq.br/1111111111111111");
         professor.setStatus(status);
         professor.setCourseIds(Set.of(101L, 102L));
         return professor;

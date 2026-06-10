@@ -7,7 +7,7 @@ public record ProfessorListItemResponse(
     Long id,
     String name,
     String email,
-    String lattesNumber,
+    String lattesUrl,
     String matricula,
     Professor.Status status,
     LocalDateTime createdAt

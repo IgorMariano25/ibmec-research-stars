@@ -12,7 +12,7 @@ public interface ProfessorRepository extends JpaRepository<Professor, Long>, Jpa
 
     boolean existsByEmailAndIdNot(String email, Long id);
 
-    boolean existsByLattesNumber(String lattesNumber);
+    boolean existsByLattesUrl(String lattesUrl);
 
-    boolean existsByLattesNumberAndIdNot(String lattesNumber, Long id);
+    boolean existsByLattesUrlAndIdNot(String lattesUrl, Long id);
 }

@@ -74,7 +74,7 @@ export function ProfessorProfilePage() {
                 <Divider />
                 <Field label="Nome" value={me.name} />
                 <Field label="E-mail" value={me.email} />
-                <Field label="Número Lattes" value={me.lattesNumber} />
+                <Field label="URL Lattes" value={me.lattesUrl} />
                 <Field label="Criado em" value={formatDateTime(me.createdAt)} />
               </Stack>
             </CardContent>

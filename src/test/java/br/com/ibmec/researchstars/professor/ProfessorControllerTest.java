@@ -58,7 +58,7 @@ class ProfessorControllerTest {
             1L,
             "Ada Lovelace",
             "ada@ibmec.br",
-            "LAT-001",
+            "https://lattes.cnpq.br/1111111111111111",
             "MAT-001",
             Professor.Status.PENDING,
             null
@@ -145,14 +145,14 @@ class ProfessorControllerTest {
                       "name": "Ada Lovelace",
                       "email": "ada@ibmec.br",
                       "matricula": "MAT-001",
-                      "lattesNumber": "LAT-001",
+                      "lattesUrl": "https://lattes.cnpq.br/1111111111111111",
                       "courseIds": [101, 102]
                     }
                     """))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").value(1))
             .andExpect(jsonPath("$.name").value("Ada Lovelace"))
-            .andExpect(jsonPath("$.lattesNumber").value("LAT-001"));
+            .andExpect(jsonPath("$.lattesUrl").value("https://lattes.cnpq.br/1111111111111111"));
 
         verify(service).update(eq(1L), any(ProfessorUpdateRequest.class));
     }
@@ -169,7 +169,7 @@ class ProfessorControllerTest {
                       "name": "Ada Lovelace",
                       "email": "ada@ibmec.br",
                       "matricula": "MAT-001",
-                      "lattesNumber": "LAT-001",
+                      "lattesUrl": "https://lattes.cnpq.br/1111111111111111",
                       "courseIds": [101, 102]
                     }
                     """))
@@ -225,7 +225,7 @@ class ProfessorControllerTest {
             10L,
             "Ada Lovelace",
             "ada@ibmec.br",
-            "LAT-001",
+            "https://lattes.cnpq.br/1111111111111111",
             "MAT-001",
             Professor.Status.APPROVED,
             List.of(

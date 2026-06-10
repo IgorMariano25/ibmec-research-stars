@@ -1,6 +1,12 @@
 import {
   Autocomplete,
   Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
   IconButton,
   Link,
   MenuItem,
@@ -19,11 +25,22 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSnackbar } from 'notistack';
 import { publicationService } from '../../api/publicationService';
 import { professorService } from '../../api/professorService';
-import type { Professor, PublicationStatus } from '../../api/types';
+import type { Professor, Publication, PublicationStatus, PublicationType } from '../../api/types';
 import { StatusChip } from '../../components/StatusChip';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { formatDate } from '../../utils/formHelpers';
 import { getErrorMessage } from '../../api/httpClient';
+
+const publicationTypeLabels: Record<PublicationType, string> = {
+  JOURNAL_ARTICLE: 'Artigo em periódico',
+  CONFERENCE_PAPER: 'Artigo em conferência',
+  BOOK_CHAPTER: 'Capítulo de livro',
+  BOOK: 'Livro',
+  EXPANDED_ABSTRACT: 'Resumo expandido',
+  SIMPLE_ABSTRACT: 'Resumo simples',
+  PROCEEDINGS_WORK: 'Trabalho em anais',
+  OTHER: 'Outro',
+};
 
 function isValidUrl(value: string): boolean {
   try {
@@ -44,6 +61,7 @@ export function AdminPublicationsPage() {
   const [validateTarget, setValidateTarget] = useState<{ id: number; title: string } | null>(null);
   const [rejectTarget, setRejectTarget] = useState<{ id: number; title: string } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; title: string } | null>(null);
+  const [reviewId, setReviewId] = useState<number | null>(null);
 
   const params = {
     page: pagination.page,
@@ -61,6 +79,25 @@ export function AdminPublicationsPage() {
   const professorsQuery = useQuery({
     queryKey: ['professors', { size: 100 }],
     queryFn: () => professorService.list({ size: 100 }),
+  });
+
+  const reviewQuery = useQuery({
+    queryKey: ['publications', 'review', reviewId],
+    queryFn: () => publicationService.getById(reviewId!),
+    enabled: reviewId !== null,
+  });
+
+  const reviewPublication = reviewQuery.data;
+
+  const relatedValidatedQuery = useQuery({
+    queryKey: ['publications', 'review', reviewPublication?.professorId, 'validated'],
+    queryFn: () =>
+      publicationService.list({
+        professorId: reviewPublication!.professorId,
+        status: 'VALIDATED',
+        size: 50,
+      }),
+    enabled: Boolean(reviewPublication?.professorId),
   });
 
   const invalidate = () => {
@@ -96,7 +133,22 @@ export function AdminPublicationsPage() {
 
   const columns = useMemo<GridColDef[]>(
     () => [
-      { field: 'title', headerName: 'Título', flex: 1.4, minWidth: 220 },
+      {
+        field: 'title',
+        headerName: 'Título',
+        flex: 1.4,
+        minWidth: 260,
+        renderCell: (p) => (
+          <Stack sx={{ py: 1, minWidth: 0 }}>
+            <Typography sx={{ fontWeight: 500 }} noWrap>
+              {p.row.title}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" noWrap>
+              {p.row.abntReference}
+            </Typography>
+          </Stack>
+        ),
+      },
       { field: 'professorName', headerName: 'Professor', flex: 1, minWidth: 160 },
       {
         field: 'publicationDate',
@@ -117,7 +169,12 @@ export function AdminPublicationsPage() {
         sortable: false,
         renderCell: (p) =>
           p.value ? (
-            <Link href={p.value as string} target="_blank" rel="noopener noreferrer">
+            <Link
+              href={p.value as string}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(event) => event.stopPropagation()}
+            >
               Abrir <OpenInNewIcon sx={{ fontSize: 14, verticalAlign: 'middle' }} />
             </Link>
           ) : (
@@ -138,7 +195,10 @@ export function AdminPublicationsPage() {
                   <IconButton
                     color="success"
                     disabled={!canValidate}
-                    onClick={() => setValidateTarget({ id: p.row.id, title: p.row.title })}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setValidateTarget({ id: p.row.id, title: p.row.title });
+                    }}
                   >
                     <CheckIcon fontSize="small" />
                   </IconButton>
@@ -147,7 +207,10 @@ export function AdminPublicationsPage() {
               <Tooltip title="Rejeitar">
                 <IconButton
                   color="warning"
-                  onClick={() => setRejectTarget({ id: p.row.id, title: p.row.title })}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setRejectTarget({ id: p.row.id, title: p.row.title });
+                  }}
                   disabled={p.row.status === 'REJECTED'}
                 >
                   <CloseIcon fontSize="small" />
@@ -156,7 +219,10 @@ export function AdminPublicationsPage() {
               <Tooltip title="Excluir">
                 <IconButton
                   color="error"
-                  onClick={() => setDeleteTarget({ id: p.row.id, title: p.row.title })}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setDeleteTarget({ id: p.row.id, title: p.row.title });
+                  }}
                 >
                   <DeleteIcon fontSize="small" />
                 </IconButton>
@@ -227,9 +293,30 @@ export function AdminPublicationsPage() {
           paginationModel={pagination}
           onPaginationModelChange={setPagination}
           pageSizeOptions={[10, 20, 50]}
+          getRowHeight={() => 'auto'}
+          onRowClick={(params) => setReviewId(params.row.id)}
           disableRowSelectionOnClick
         />
       </Box>
+
+      <PublicationReviewDialog
+        open={reviewId !== null}
+        publication={reviewPublication}
+        loading={reviewQuery.isLoading}
+        relatedValidated={(relatedValidatedQuery.data?.content ?? []).filter(
+          (item) => item.id !== reviewPublication?.id,
+        )}
+        relatedLoading={relatedValidatedQuery.isLoading}
+        onClose={() => setReviewId(null)}
+        onValidate={(publication) => {
+          setReviewId(null);
+          setValidateTarget({ id: publication.id, title: publication.title });
+        }}
+        onReject={(publication) => {
+          setReviewId(null);
+          setRejectTarget({ id: publication.id, title: publication.title });
+        }}
+      />
 
       <ConfirmDialog
         open={Boolean(validateTarget)}
@@ -273,6 +360,133 @@ export function AdminPublicationsPage() {
           setDeleteTarget(null);
         }}
       />
+    </Stack>
+  );
+}
+
+interface PublicationReviewDialogProps {
+  open: boolean;
+  publication?: Publication;
+  loading: boolean;
+  relatedValidated: Publication[];
+  relatedLoading: boolean;
+  onClose: () => void;
+  onValidate: (publication: Publication) => void;
+  onReject: (publication: Publication) => void;
+}
+
+function PublicationReviewDialog({
+  open,
+  publication,
+  loading,
+  relatedValidated,
+  relatedLoading,
+  onClose,
+  onValidate,
+  onReject,
+}: PublicationReviewDialogProps) {
+  const canValidate = publication?.status !== 'VALIDATED' && isValidUrl(publication?.link ?? '');
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+      <DialogTitle>Revisar publicação</DialogTitle>
+      <DialogContent dividers>
+        {loading || !publication ? (
+          <Typography color="text.secondary">Carregando publicação...</Typography>
+        ) : (
+          <Stack spacing={2.5}>
+            <Stack spacing={0.5}>
+              <Typography variant="h6">{publication.title}</Typography>
+              <Typography color="text.secondary">{publication.abntReference}</Typography>
+            </Stack>
+
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <ReviewField label="Professor" value={publication.professorName ?? 'Sem professor'} />
+              <ReviewField label="Data" value={formatDate(publication.publicationDate)} />
+              <Stack spacing={0.5}>
+                <Typography variant="caption" color="text.secondary">
+                  Status
+                </Typography>
+                <StatusChip status={publication.status} />
+              </Stack>
+              <ReviewField
+                label="Tipo"
+                value={publicationTypeLabels[publication.publicationType]}
+              />
+            </Stack>
+
+            <Stack spacing={0.5}>
+              <Typography variant="caption" color="text.secondary">
+                Link
+              </Typography>
+              <Link href={publication.link} target="_blank" rel="noopener noreferrer">
+                {publication.link} <OpenInNewIcon sx={{ fontSize: 14, verticalAlign: 'middle' }} />
+              </Link>
+            </Stack>
+
+            <Divider />
+
+            <Stack spacing={1}>
+              <Typography variant="subtitle1" fontWeight={600}>
+                Publicações validadas do mesmo professor
+              </Typography>
+              {relatedLoading ? (
+                <Typography color="text.secondary">Carregando publicações validadas...</Typography>
+              ) : relatedValidated.length === 0 ? (
+                <Typography color="text.secondary">
+                  Nenhuma publicação validada anterior encontrada para comparação.
+                </Typography>
+              ) : (
+                <Stack spacing={1.5}>
+                  {relatedValidated.map((item) => (
+                    <Box key={item.id}>
+                      <Typography sx={{ fontWeight: 500 }}>{item.title}</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {item.abntReference}
+                      </Typography>
+                      <Stack direction="row" spacing={2} sx={{ mt: 0.5 }}>
+                        <Typography variant="body2">{formatDate(item.publicationDate)}</Typography>
+                        <Link href={item.link} target="_blank" rel="noopener noreferrer" variant="body2">
+                          Abrir <OpenInNewIcon sx={{ fontSize: 14, verticalAlign: 'middle' }} />
+                        </Link>
+                      </Stack>
+                    </Box>
+                  ))}
+                </Stack>
+              )}
+            </Stack>
+          </Stack>
+        )}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Fechar</Button>
+        {publication && publication.status !== 'REJECTED' && (
+          <Button color="warning" onClick={() => onReject(publication)}>
+            Rejeitar
+          </Button>
+        )}
+        {publication && (
+          <Button
+            variant="contained"
+            color="success"
+            disabled={!canValidate}
+            onClick={() => onValidate(publication)}
+          >
+            Validar
+          </Button>
+        )}
+      </DialogActions>
+    </Dialog>
+  );
+}
+
+function ReviewField({ label, value }: { label: string; value: string }) {
+  return (
+    <Stack spacing={0.5} sx={{ minWidth: 120 }}>
+      <Typography variant="caption" color="text.secondary">
+        {label}
+      </Typography>
+      <Typography>{value}</Typography>
     </Stack>
   );
 }
