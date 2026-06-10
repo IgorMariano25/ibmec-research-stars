@@ -45,10 +45,12 @@ public class PublicationService {
 
     // GET /publications/{id} — RF-12
     @Transactional(readOnly = true)
-    public PublicationResponse findById(Long id) {
-        return publicationRepository.findById(id)
-                .map(mapper::toResponse)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Publicação não encontrada: " + id));
+    public PublicationResponse findById(Long id, Long callerProfessorId, boolean isAdmin) {
+        var publication = getPublicationOrThrow(id);
+        if (!isAdmin && !publication.getProfessorId().equals(callerProfessorId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acesso negado");
+        }
+        return mapper.toResponse(publication);
     }
 
     // POST /publications (Professor) — RF-10, RF-11, RF-18
