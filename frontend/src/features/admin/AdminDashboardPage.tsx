@@ -21,11 +21,16 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useQuery } from '@tanstack/react-query';
 import { reportService } from '../../api/reportService';
 import { professorService } from '../../api/professorService';
+import type { CourseCompliance } from '../../api/types';
 import { LoadingState, ErrorState, EmptyState } from '../../components/States';
 import { ProgressBar, StatCard } from '../../components/StatCard';
 import { getErrorMessage } from '../../api/httpClient';
 
 const COMPLIANCE_THRESHOLD = 70;
+
+function getCompliantProfessors(course: CourseCompliance): number {
+  return course.compliantProfessors ?? course.totalCompliantProfessors ?? 0;
+}
 
 export function AdminDashboardPage() {
   const complianceQuery = useQuery({
@@ -39,11 +44,10 @@ export function AdminDashboardPage() {
 
   const data = complianceQuery.data ?? [];
   const totalCourses = data.length;
+  const totalApprovedProfessors = data.reduce((sum, c) => sum + c.totalApprovedProfessors, 0);
+  const totalCompliantProfessors = data.reduce((sum, c) => sum + getCompliantProfessors(c), 0);
   const avgCompliance =
-    totalCourses === 0
-      ? 0
-      : data.reduce((sum, c) => sum + (Number.isFinite(c.compliancePercentage) ? c.compliancePercentage : 0), 0) /
-        totalCourses;
+    totalApprovedProfessors === 0 ? 0 : (totalCompliantProfessors / totalApprovedProfessors) * 100;
   const compliantCourses = data.filter((c) => c.compliancePercentage >= COMPLIANCE_THRESHOLD).length;
   const pendingCount = pendingProfessorsQuery.data?.totalElements ?? 0;
 
@@ -52,7 +56,7 @@ export function AdminDashboardPage() {
       <Box>
         <Typography variant="h4">Dashboard de conformidade</Typography>
         <Typography color="text.secondary">
-          Visão geral por curso — % de professores com ≥ 9 publicações validadas nos últimos 3 anos.
+          Visão geral por curso — % de professores com ≥ 9 publicações validadas desde 1º de janeiro de três anos atrás.
         </Typography>
       </Box>
 
@@ -122,7 +126,7 @@ export function AdminDashboardPage() {
                         <TableCell>{c.courseName}</TableCell>
                         <TableCell>{c.courseCode}</TableCell>
                         <TableCell align="center">
-                          {c.compliantProfessors} / {c.totalApprovedProfessors}
+                          {getCompliantProfessors(c)} / {c.totalApprovedProfessors}
                         </TableCell>
                         <TableCell>
                           <ProgressBar value={c.compliancePercentage} />
