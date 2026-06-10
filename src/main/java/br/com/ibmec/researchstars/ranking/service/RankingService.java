@@ -5,10 +5,10 @@ import br.com.ibmec.researchstars.ranking.dto.RankingEntryDto;
 import br.com.ibmec.researchstars.professor.Professor;
 import br.com.ibmec.researchstars.professor.ProfessorRepository;
 import br.com.ibmec.researchstars.publication.repository.PublicationRepository;
+import br.com.ibmec.researchstars.report.service.ReportingWindowService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -19,10 +19,16 @@ public class RankingService {
 
     private final ProfessorRepository professorRepository;
     private final PublicationRepository publicationRepository;
+    private final ReportingWindowService reportingWindowService;
 
-    public RankingService(ProfessorRepository professorRepository, PublicationRepository publicationRepository) {
+    public RankingService(
+            ProfessorRepository professorRepository,
+            PublicationRepository publicationRepository,
+            ReportingWindowService reportingWindowService
+    ) {
         this.professorRepository = professorRepository;
         this.publicationRepository = publicationRepository;
+        this.reportingWindowService = reportingWindowService;
     }
 
     @Transactional(readOnly = true)
@@ -47,14 +53,14 @@ public class RankingService {
     }
 
     private List<RankingEntryDto> buildRankingEntries() {
-        LocalDate threeYearsAgo = LocalDate.now().minusYears(3);
+        var window = reportingWindowService.defaultWindow();
         List<Professor> approvedProfessors = professorRepository.findAll().stream()
                 .filter(p -> p.getStatus() == Professor.Status.APPROVED)
                 .collect(Collectors.toList());
 
         List<RankingEntryDto> entries = new ArrayList<>();
         for (Professor p : approvedProfessors) {
-            long count = publicationRepository.countValidatedSince(p.getId(), threeYearsAgo);
+            long count = publicationRepository.countValidatedBetween(p.getId(), window.startDate(), window.endDate());
             entries.add(new RankingEntryDto(p.getId(), p.getName(), p.getLattesNumber(), count));
         }
 

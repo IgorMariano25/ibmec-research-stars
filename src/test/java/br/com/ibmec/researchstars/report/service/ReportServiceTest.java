@@ -1,8 +1,9 @@
 package br.com.ibmec.researchstars.report.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import br.com.ibmec.researchstars.course.Course;
@@ -17,7 +18,6 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -34,14 +34,22 @@ class ReportServiceTest {
     @Mock
     private PublicationRepository publicationRepository;
 
-    @InjectMocks
+    @Mock
+    private ReportingWindowService reportingWindowService;
+
     private ReportService reportService;
 
     private Course courseA;
     private Professor profA;
+    private Professor profB;
+    private ReportingWindow reportingWindow;
 
     @BeforeEach
     void setUp() {
+        reportingWindow = new ReportingWindow(LocalDate.of(2023, 1, 1), LocalDate.of(2026, 6, 10));
+        when(reportingWindowService.defaultWindow()).thenReturn(reportingWindow);
+        reportService = new ReportService(courseRepository, professorRepository, publicationRepository, reportingWindowService);
+
         courseA = new Course("Computacao", "COMP");
         ReflectionTestUtils.setField(courseA, "id", 10L);
 
@@ -50,6 +58,12 @@ class ReportServiceTest {
         profA.setName("Alice");
         profA.setStatus(Professor.Status.APPROVED);
         profA.setCourseIds(Set.of(10L));
+
+        profB = new Professor();
+        ReflectionTestUtils.setField(profB, "id", 200L);
+        profB.setName("Bob");
+        profB.setStatus(Professor.Status.APPROVED);
+        profB.setCourseIds(Set.of(10L));
     }
 
     @Test
@@ -57,7 +71,7 @@ class ReportServiceTest {
         // Arrange
         when(courseRepository.findAll()).thenReturn(List.of(courseA));
         when(professorRepository.findAll()).thenReturn(List.of(profA));
-        when(publicationRepository.countValidatedSince(eq(100L), any(LocalDate.class))).thenReturn(10L); // >= 9
+        when(publicationRepository.countValidatedBetween(eq(100L), eq(reportingWindow.startDate()), eq(reportingWindow.endDate()))).thenReturn(10L); // >= 9
 
         // Act
         List<CourseComplianceDto> reports = reportService.getCourseCompliance();
@@ -67,6 +81,7 @@ class ReportServiceTest {
         CourseComplianceDto compliance = reports.get(0);
         assertThat(compliance.getCourseCode()).isEqualTo("COMP");
         assertThat(compliance.getTotalApprovedProfessors()).isEqualTo(1L);
+        assertThat(compliance.getCompliantProfessors()).isEqualTo(1L);
         assertThat(compliance.getTotalCompliantProfessors()).isEqualTo(1L);
         assertThat(compliance.getCompliancePercentage()).isEqualTo(100.0);
     }
@@ -76,7 +91,7 @@ class ReportServiceTest {
         // Arrange
         when(courseRepository.findAll()).thenReturn(List.of(courseA));
         when(professorRepository.findAll()).thenReturn(List.of(profA));
-        when(publicationRepository.countValidatedSince(eq(100L), any(LocalDate.class))).thenReturn(8L); // < 9
+        when(publicationRepository.countValidatedBetween(eq(100L), eq(reportingWindow.startDate()), eq(reportingWindow.endDate()))).thenReturn(8L); // < 9
 
         // Act
         List<CourseComplianceDto> reports = reportService.getCourseCompliance();
@@ -85,7 +100,36 @@ class ReportServiceTest {
         assertThat(reports).hasSize(1);
         CourseComplianceDto compliance = reports.get(0);
         assertThat(compliance.getTotalApprovedProfessors()).isEqualTo(1L);
+        assertThat(compliance.getCompliantProfessors()).isEqualTo(0L);
         assertThat(compliance.getTotalCompliantProfessors()).isEqualTo(0L);
         assertThat(compliance.getCompliancePercentage()).isEqualTo(0.0);
+    }
+
+    @Test
+    void getCourseComplianceCountsOnlyApprovedProfessors() {
+        profB.setStatus(Professor.Status.PENDING);
+        when(courseRepository.findAll()).thenReturn(List.of(courseA));
+        when(professorRepository.findAll()).thenReturn(List.of(profA, profB));
+        when(publicationRepository.countValidatedBetween(eq(100L), eq(reportingWindow.startDate()), eq(reportingWindow.endDate()))).thenReturn(9L);
+
+        CourseComplianceDto compliance = reportService.getCourseCompliance().get(0);
+
+        assertThat(compliance.getTotalApprovedProfessors()).isEqualTo(1L);
+        assertThat(compliance.getCompliantProfessors()).isEqualTo(1L);
+        verify(publicationRepository, never()).countValidatedBetween(eq(200L), eq(reportingWindow.startDate()), eq(reportingWindow.endDate()));
+    }
+
+    @Test
+    void getCourseComplianceCalculatesPercentageFromCompliantAndApprovedProfessors() {
+        when(courseRepository.findAll()).thenReturn(List.of(courseA));
+        when(professorRepository.findAll()).thenReturn(List.of(profA, profB));
+        when(publicationRepository.countValidatedBetween(eq(100L), eq(reportingWindow.startDate()), eq(reportingWindow.endDate()))).thenReturn(9L);
+        when(publicationRepository.countValidatedBetween(eq(200L), eq(reportingWindow.startDate()), eq(reportingWindow.endDate()))).thenReturn(8L);
+
+        CourseComplianceDto compliance = reportService.getCourseCompliance().get(0);
+
+        assertThat(compliance.getTotalApprovedProfessors()).isEqualTo(2L);
+        assertThat(compliance.getCompliantProfessors()).isEqualTo(1L);
+        assertThat(compliance.getCompliancePercentage()).isEqualTo(50.0);
     }
 }

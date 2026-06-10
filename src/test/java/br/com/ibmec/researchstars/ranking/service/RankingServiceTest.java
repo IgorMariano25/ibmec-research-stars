@@ -1,13 +1,14 @@
 package br.com.ibmec.researchstars.ranking.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import br.com.ibmec.researchstars.professor.Professor;
 import br.com.ibmec.researchstars.professor.ProfessorRepository;
 import br.com.ibmec.researchstars.publication.repository.PublicationRepository;
+import br.com.ibmec.researchstars.report.service.ReportingWindow;
+import br.com.ibmec.researchstars.report.service.ReportingWindowService;
 import br.com.ibmec.researchstars.ranking.dto.MyRankingResponseDto;
 import br.com.ibmec.researchstars.ranking.dto.RankingEntryDto;
 import java.time.LocalDate;
@@ -16,7 +17,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -30,14 +30,19 @@ class RankingServiceTest {
     @Mock
     private PublicationRepository publicationRepository;
 
-    @InjectMocks
     private RankingService rankingService;
 
     private Professor profA;
     private Professor profB;
+    private ReportingWindow reportingWindow;
 
     @BeforeEach
     void setUp() {
+        var reportingWindowService = org.mockito.Mockito.mock(ReportingWindowService.class);
+        reportingWindow = new ReportingWindow(LocalDate.of(2023, 1, 1), LocalDate.of(2026, 6, 10));
+        when(reportingWindowService.defaultWindow()).thenReturn(reportingWindow);
+        rankingService = new RankingService(professorRepository, publicationRepository, reportingWindowService);
+
         profA = new Professor();
         ReflectionTestUtils.setField(profA, "id", 100L);
         profA.setName("Alice");
@@ -53,8 +58,8 @@ class RankingServiceTest {
     void test_deve_retornar_ranking_ordenado_pelo_numero_de_publicacoes() {
         // Arrange
         when(professorRepository.findAll()).thenReturn(List.of(profA, profB));
-        when(publicationRepository.countValidatedSince(eq(100L), any(LocalDate.class))).thenReturn(5L);
-        when(publicationRepository.countValidatedSince(eq(200L), any(LocalDate.class))).thenReturn(10L);
+        when(publicationRepository.countValidatedBetween(eq(100L), eq(reportingWindow.startDate()), eq(reportingWindow.endDate()))).thenReturn(5L);
+        when(publicationRepository.countValidatedBetween(eq(200L), eq(reportingWindow.startDate()), eq(reportingWindow.endDate()))).thenReturn(10L);
 
         // Act
         List<RankingEntryDto> result = rankingService.getRanking();
@@ -72,8 +77,8 @@ class RankingServiceTest {
         // Arrange
         when(professorRepository.findAll()).thenReturn(List.of(profA, profB));
         when(professorRepository.findById(100L)).thenReturn(Optional.of(profA));
-        when(publicationRepository.countValidatedSince(eq(100L), any(LocalDate.class))).thenReturn(5L);
-        when(publicationRepository.countValidatedSince(eq(200L), any(LocalDate.class))).thenReturn(10L);
+        when(publicationRepository.countValidatedBetween(eq(100L), eq(reportingWindow.startDate()), eq(reportingWindow.endDate()))).thenReturn(5L);
+        when(publicationRepository.countValidatedBetween(eq(200L), eq(reportingWindow.startDate()), eq(reportingWindow.endDate()))).thenReturn(10L);
 
         // Act
         MyRankingResponseDto myRanking = rankingService.getMyRanking(100L);
