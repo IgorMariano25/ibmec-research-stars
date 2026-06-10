@@ -1,5 +1,6 @@
 package br.com.ibmec.researchstars.publication.dto;
 
+import br.com.ibmec.researchstars.publication.PublicationType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
@@ -19,5 +20,11 @@ public record CreatePublicationRequest(
 
         @NotNull(message = "A data de publicação é obrigatória")
         @PastOrPresent(message = "A data de publicação não pode ser no futuro")
-        LocalDate publicationDate
+        LocalDate publicationDate,
+
+        @NotNull(message = "O tipo da publicação é obrigatório")
+        PublicationType publicationType,
+
+        @NotBlank(message = "A referência ABNT é obrigatória")
+        String abntReference
 ) {}

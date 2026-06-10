@@ -44,8 +44,8 @@ public class AuthService {
         if (userRepository.existsByEmail(request.email())) {
             throw new RuntimeException("Email já cadastrado");
         }
-        if (professorRepository.existsByLattesNumber(request.lattesNumber())) {
-            throw new RuntimeException("Número Lattes já cadastrado");
+        if (professorRepository.existsByLattesUrl(request.lattesUrl())) {
+            throw new RuntimeException("URL Lattes já cadastrada");
         }
 
         User user = new User();
@@ -63,7 +63,7 @@ public class AuthService {
         Professor professor = new Professor();
         professor.setName(request.name());
         professor.setEmail(request.email());
-        professor.setLattesNumber(request.lattesNumber());
+        professor.setLattesUrl(request.lattesUrl());
         professor.setMatricula(request.matricula());
         professor.setUserId(user.getId());
         professor.setStatus(Professor.Status.PENDING);

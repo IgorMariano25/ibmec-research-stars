@@ -139,7 +139,7 @@ export function AdminProfessorDetailPage() {
                 </Stack>
                 <Divider />
                 <Field label="E-mail" value={p.email} />
-                <Field label="Número Lattes" value={p.lattesNumber} />
+                <Field label="URL Lattes" value={p.lattesUrl} />
                 <Field
                   label="Cadastrado em"
                   value={formatDateTime(p.createdAt)}
@@ -201,7 +201,14 @@ export function AdminProfessorDetailPage() {
                   <TableBody>
                     {(publicationsQuery.data ?? []).map((pub) => (
                       <TableRow key={pub.id} hover>
-                        <TableCell>{pub.title}</TableCell>
+                        <TableCell>
+                          <Typography sx={{ fontWeight: 500 }}>
+                            {pub.title}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {pub.abntReference}
+                          </Typography>
+                        </TableCell>
                         <TableCell>{formatDate(pub.publicationDate)}</TableCell>
                         <TableCell>
                           <StatusChip status={pub.status} />

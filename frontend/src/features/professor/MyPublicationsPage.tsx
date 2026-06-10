@@ -151,6 +151,9 @@ export function MyPublicationsPage() {
                 <TableRow key={p.id} hover>
                   <TableCell sx={{ maxWidth: 360 }}>
                     <Typography sx={{ fontWeight: 500 }}>{p.title}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {p.abntReference}
+                    </Typography>
                   </TableCell>
                   <TableCell>{formatDate(p.publicationDate)}</TableCell>
                   <TableCell>

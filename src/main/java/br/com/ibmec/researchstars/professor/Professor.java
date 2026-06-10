@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.validator.constraints.URL;
 
 @Entity
 @Table(name = "professors")
@@ -46,9 +47,10 @@ public class Professor {
     private String matricula;
 
     @NotBlank
-    @Size(max = 100)
-    @Column(name = "lattes_number", nullable = false, unique = true)
-    private String lattesNumber;
+    @URL
+    @Size(max = 1000)
+    @Column(name = "lattes_url", nullable = false, unique = true, length = 1000)
+    private String lattesUrl;
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -105,12 +107,12 @@ public class Professor {
         this.matricula = matricula;
     }
 
-    public String getLattesNumber() {
-        return lattesNumber;
+    public String getLattesUrl() {
+        return lattesUrl;
     }
 
-    public void setLattesNumber(String lattesNumber) {
-        this.lattesNumber = lattesNumber;
+    public void setLattesUrl(String lattesUrl) {
+        this.lattesUrl = lattesUrl;
     }
 
     public Status getStatus() {

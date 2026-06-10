@@ -1,6 +1,15 @@
 export type Role = 'ADMIN' | 'PROFESSOR';
 export type ProfessorStatus = 'PENDING' | 'APPROVED';
 export type PublicationStatus = 'PENDING' | 'VALIDATED' | 'REJECTED';
+export type PublicationType =
+  | 'JOURNAL_ARTICLE'
+  | 'CONFERENCE_PAPER'
+  | 'BOOK_CHAPTER'
+  | 'BOOK'
+  | 'EXPANDED_ABSTRACT'
+  | 'SIMPLE_ABSTRACT'
+  | 'PROCEEDINGS_WORK'
+  | 'OTHER';
 
 export interface Course {
   id: number;
@@ -12,7 +21,7 @@ export interface Professor {
   id: number;
   name: string;
   email: string;
-  lattesNumber: string;
+  lattesUrl: string;
   status: ProfessorStatus;
   courses: Course[];
   createdAt: string;
@@ -23,6 +32,8 @@ export interface Publication {
   title: string;
   link: string;
   publicationDate: string;
+  publicationType: PublicationType;
+  abntReference: string;
   status: PublicationStatus;
   professorId: number;
   professorName?: string;
@@ -56,7 +67,7 @@ export interface CourseCompliance {
 export interface RegisterRequest {
   name: string;
   email: string;
-  lattesNumber: string;
+  lattesUrl: string;
   password: string;
   courseIds: number[];
 }
@@ -78,6 +89,8 @@ export interface PublicationRequest {
   title: string;
   link: string;
   publicationDate: string;
+  publicationType: PublicationType;
+  abntReference: string;
 }
 
 export interface CourseRequest {

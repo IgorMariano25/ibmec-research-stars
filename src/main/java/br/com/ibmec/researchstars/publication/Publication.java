@@ -29,6 +29,15 @@ public class Publication {
     private LocalDate publicationDate;
 
     @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "publication_type", nullable = false)
+    private PublicationType publicationType = PublicationType.OTHER;
+
+    @NotBlank
+    @Column(name = "abnt_reference", nullable = false, length = 2000)
+    private String abntReference;
+
+    @NotNull
     @Column(name = "professor_id", nullable = false)
     private Long professorId;
 
@@ -57,6 +66,12 @@ public class Publication {
     public LocalDate getPublicationDate() { return publicationDate; }
     public void setPublicationDate(LocalDate publicationDate) { this.publicationDate = publicationDate; }
 
+    public PublicationType getPublicationType() { return publicationType; }
+    public void setPublicationType(PublicationType publicationType) { this.publicationType = publicationType; }
+
+    public String getAbntReference() { return abntReference; }
+    public void setAbntReference(String abntReference) { this.abntReference = abntReference; }
+
     public Long getProfessorId() { return professorId; }
     public void setProfessorId(Long professorId) { this.professorId = professorId; }
 
@@ -71,4 +86,3 @@ public class Publication {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
 }
-

@@ -82,14 +82,14 @@ public class ProfessorService {
         if (repository.existsByEmailAndIdNot(request.email(), id)) {
             throw new ProfessorConflictException("Email already in use");
         }
-        if (repository.existsByLattesNumberAndIdNot(request.lattesNumber(), id)) {
-            throw new ProfessorConflictException("Lattes number already in use");
+        if (repository.existsByLattesUrlAndIdNot(request.lattesUrl(), id)) {
+            throw new ProfessorConflictException("Lattes URL already in use");
         }
 
         professor.setName(request.name());
         professor.setEmail(request.email());
         professor.setMatricula(request.matricula());
-        professor.setLattesNumber(request.lattesNumber());
+        professor.setLattesUrl(request.lattesUrl());
         var validCourseIds = courseGateway.keepOnlyExistingCourseIds(request.courseIds());
         professor.setCourseIds(validCourseIds);
 

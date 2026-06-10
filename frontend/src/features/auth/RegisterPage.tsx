@@ -31,7 +31,7 @@ import { applyApiFieldErrors } from "../../utils/formHelpers";
 const schema = z.object({
   name: z.string().min(2, "Informe seu nome completo"),
   email: z.string().email("E-mail inválido"),
-  lattesNumber: z.string().min(3, "Informe o número Lattes"),
+  lattesUrl: z.string().url("Informe uma URL Lattes válida"),
   password: z.string().min(6, "A senha deve ter ao menos 6 caracteres"),
   courseIds: z.array(z.number()).min(1, "Selecione ao menos um curso"),
 });
@@ -61,7 +61,7 @@ export function RegisterPage() {
     defaultValues: {
       name: "",
       email: "",
-      lattesNumber: "",
+      lattesUrl: "",
       password: "",
       courseIds: [],
     },
@@ -77,13 +77,13 @@ export function RegisterPage() {
     } catch (error) {
       const api = applyApiFieldErrors(error, setError);
       if (api?.status === 409) {
-        setServerError(api.message || "E-mail ou número Lattes já cadastrado.");
+        setServerError(api.message || "E-mail ou URL Lattes já cadastrada.");
         if (!api.fieldErrors?.length) {
           setError("email", {
             type: "server",
             message: "E-mail ou Lattes já cadastrado",
           });
-          setError("lattesNumber", {
+          setError("lattesUrl", {
             type: "server",
             message: "E-mail ou Lattes já cadastrado",
           });
@@ -169,11 +169,12 @@ export function RegisterPage() {
                   helperText={errors.email?.message}
                 />
                 <TextField
-                  label="Número Lattes"
+                  label="URL Lattes"
                   fullWidth
-                  {...register("lattesNumber")}
-                  error={Boolean(errors.lattesNumber)}
-                  helperText={errors.lattesNumber?.message}
+                  placeholder="https://lattes.cnpq.br/..."
+                  {...register("lattesUrl")}
+                  error={Boolean(errors.lattesUrl)}
+                  helperText={errors.lattesUrl?.message}
                 />
                 <TextField
                   label="Senha"

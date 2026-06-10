@@ -60,6 +60,8 @@ public class RankingService {
 
         List<RankingEntryDto> entries = new ArrayList<>();
         for (Professor p : approvedProfessors) {
+            long count = publicationRepository.countValidatedSince(p.getId(), threeYearsAgo);
+            entries.add(new RankingEntryDto(p.getId(), p.getName(), p.getLattesUrl(), count));
             long count = publicationRepository.countValidatedBetween(p.getId(), window.startDate(), window.endDate());
             entries.add(new RankingEntryDto(p.getId(), p.getName(), p.getLattesNumber(), count));
         }
