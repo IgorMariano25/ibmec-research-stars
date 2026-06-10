@@ -42,6 +42,11 @@ export interface Publication {
   createdAt: string;
 }
 
+export interface ProfessorPublicationsResponse {
+  professorId: number;
+  publications: Publication[];
+}
+
 export interface RankingEntry {
   rank: number;
   professorId: number;

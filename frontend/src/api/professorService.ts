@@ -1,5 +1,11 @@
 import { httpClient } from './httpClient';
-import type { Page, Professor, ProfessorStatus, Publication } from './types';
+import type {
+  Page,
+  Professor,
+  ProfessorPublicationsResponse,
+  ProfessorStatus,
+  Publication,
+} from './types';
 
 export interface ListProfessorsParams {
   page?: number;
@@ -7,6 +13,24 @@ export interface ListProfessorsParams {
   sort?: string;
   status?: ProfessorStatus;
   q?: string;
+}
+
+type ProfessorPublicationsApiResponse =
+  | Publication[]
+  | Page<Publication>
+  | ProfessorPublicationsResponse;
+
+function normalizeProfessorPublications(data: ProfessorPublicationsApiResponse): Publication[] {
+  if (Array.isArray(data)) {
+    return data;
+  }
+  if ('publications' in data && Array.isArray(data.publications)) {
+    return data.publications;
+  }
+  if ('content' in data && Array.isArray(data.content)) {
+    return data.content;
+  }
+  throw new Error('Unexpected professor publications response format');
 }
 
 export const professorService = {
@@ -19,10 +43,10 @@ export const professorService = {
     return data;
   },
   async getPublications(id: number): Promise<Publication[]> {
-    const { data } = await httpClient.get<Publication[] | Page<Publication>>(
+    const { data } = await httpClient.get<ProfessorPublicationsApiResponse>(
       `/professors/${id}/publications`,
     );
-    return Array.isArray(data) ? data : data.content;
+    return normalizeProfessorPublications(data);
   },
   async getMe(): Promise<Professor> {
     const { data } = await httpClient.get<Professor>('/professors/me');
