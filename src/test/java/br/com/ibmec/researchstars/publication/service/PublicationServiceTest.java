@@ -14,8 +14,11 @@ import br.com.ibmec.researchstars.publication.dto.CreatePublicationRequest;
 import br.com.ibmec.researchstars.publication.dto.PublicationRequest;
 import br.com.ibmec.researchstars.publication.mapper.PublicationMapper;
 import br.com.ibmec.researchstars.publication.repository.PublicationRepository;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,10 +38,12 @@ class PublicationServiceTest {
     private ProfessorRepository professorRepository;
 
     private PublicationService publicationService;
+    private Clock clock;
 
     @BeforeEach
     void setUp() {
-        publicationService = new PublicationService(publicationRepository, professorRepository, new PublicationMapper());
+        clock = Clock.fixed(Instant.parse("2026-06-10T20:30:00Z"), ZoneId.of("America/Sao_Paulo"));
+        publicationService = new PublicationService(publicationRepository, professorRepository, new PublicationMapper(), clock);
     }
 
     @Test
@@ -144,6 +149,28 @@ class PublicationServiceTest {
         assertThat(result.status()).isEqualTo(PublicationStatus.PENDING);
         assertThat(result.validatedByUserId()).isNull();
         assertThat(result.validatedAt()).isNull();
+    }
+
+    @Test
+    void validateUsesSaoPauloLocalTimeFromClock() {
+        var publication = publication(1L, 10L);
+        when(publicationRepository.findById(1L)).thenReturn(Optional.of(publication));
+        when(publicationRepository.save(publication)).thenReturn(publication);
+
+        var result = publicationService.validate(1L, 99L);
+
+        assertThat(result.validatedAt()).isEqualTo(LocalDateTime.of(2026, 6, 10, 17, 30));
+    }
+
+    @Test
+    void rejectUsesSaoPauloLocalTimeFromClock() {
+        var publication = publication(1L, 10L);
+        when(publicationRepository.findById(1L)).thenReturn(Optional.of(publication));
+        when(publicationRepository.save(publication)).thenReturn(publication);
+
+        var result = publicationService.reject(1L, 99L);
+
+        assertThat(result.validatedAt()).isEqualTo(LocalDateTime.of(2026, 6, 10, 17, 30));
     }
 
     private Publication publication(Long id, Long professorId) {
