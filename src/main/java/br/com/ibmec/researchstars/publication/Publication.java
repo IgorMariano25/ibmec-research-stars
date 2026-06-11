@@ -1,8 +1,6 @@
 package br.com.ibmec.researchstars.publication;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
@@ -16,28 +14,22 @@ public class Publication {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
     @Column(nullable = false)
     private String title;
 
-    @NotBlank
     @Column(nullable = false)
     private String link;
 
-    @NotNull
     @Column(name = "publication_date", nullable = false)
     private LocalDate publicationDate;
 
-    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "publication_type", nullable = false)
     private PublicationType publicationType = PublicationType.OTHER;
 
-    @NotBlank
     @Column(name = "abnt_reference", nullable = false, length = 2000)
     private String abntReference;
 
-    @NotNull
     @Column(name = "professor_id", nullable = false)
     private Long professorId;
 
